@@ -1,6 +1,7 @@
 # Program Strucutre in python.
+#Testing  Changes 2
 def schedule_event(type, time, other_val):
-	# creates a new event and places it in the event queue based on its time.
+	#creates a new event and places it in the event queue based on its time.
 
 
 
@@ -36,7 +37,7 @@ while (!End_condition):
 	event = get_event();
 	clock = event -> time;
 
-	switch(event->type) 
+	switch(event->type)
 		case ARR:
 			# Arrival case call function
 			process_arrival(event);
