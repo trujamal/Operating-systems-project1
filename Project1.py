@@ -48,6 +48,14 @@ class Event:
 	#next_event: Event
 
 
+def generateExp(chickenLambda):
+	x = 0
+	while(x == 0):
+		random_Number = generateRandomNumber()
+		x = (-1/chickenLambda)*math.log(random_Number)
+	return x
+
+
 def generateRandomNumber():
 	our_randomNumber = float(random.randint(0, sys.maxsize))
 	our_randomNumber = our_randomNumber / sys.maxsize
