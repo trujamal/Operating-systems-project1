@@ -41,15 +41,14 @@ def __init__(self, burst,arrivalTime, pType, pId):
 
 
 
-class Event(object):
-	pass
+
 
 
 class Event:
 	time: float
 	type: type
 	kind: type
-	next_event: Event
+	#next_event: Event
 
 
 
@@ -72,6 +71,11 @@ def Init_Process():
 
 def get_event():
 	return
+
+def main():
+	print("GOOGLE IT ELLIOT")
+
+main()
 
 
 # def process_arrival(event):
