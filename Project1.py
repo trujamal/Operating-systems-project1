@@ -1,6 +1,6 @@
 import math
 import random
-from dataclasses import dataclass
+#from dataclasses import dataclass
 
 
 # Project 1
@@ -12,7 +12,10 @@ from dataclasses import dataclass
 # @date: March 21st, 2019
 
 
-@dataclass  # Struct Creation
+## GLobal Variables
+event_Queue = []
+
+#@dataclass  # Struct Creation
 class Process:
 	service_time: float
 	arrival_time: float
@@ -72,8 +75,17 @@ def Init_Process():
 def get_event():
 	return
 
+
+
+
+## START OF MAIN
 def main():
 	print("GOOGLE IT ELLIOT")
+
+	event_Vector = []
+
+
+
 
 main()
 
