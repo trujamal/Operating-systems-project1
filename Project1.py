@@ -13,8 +13,12 @@ import math
 # @date: March 21st, 2019
 
 
-## GLobal Variables
+## Global Variables
 event_Queue = []
+ARRIVAL = 1
+DEPARTURE = 2
+QUANTUM = 3
+Clock: float
 
 #@dataclass  # Struct Creation
 class Process:
@@ -29,7 +33,8 @@ class Process:
 	process_type: int
 	pId: int
 
-def __init__(self, burst,arrivalTime, pType, pId):
+
+def __init__(burst, arrivalTime, pType, processID):
 	service_time = burst
 	arrival_time = arrivalTime
 	remaining_time = burst
@@ -37,9 +42,9 @@ def __init__(self, burst,arrivalTime, pType, pId):
 	found = False  ## process being found
 	how_long_in_queue =  0
 	preemptive_time = 0
-	float_initial_wait: float
+	float_initial_wait = 0.0
 	process_type =  pType
-	self.pId =  int
+	pId = processID
 
 class Event:
 	time: float
@@ -62,11 +67,19 @@ def generateRandomNumber():
 	return our_randomNumber
 
 #Testing  Changes 2
-def schedule_event(type, time, other_val):
-	print("Scheduling Event Beings")
-	#creates a new event and places it in the event queue based on its time.
+def schedule_event(average_serice_time, lambda_value, sum_arrival_rate, simClock, processCount):
+	print("Scheduling Event Beings")  # creates a new event and places it in the event queue based on its time.
+	random_service_time = generateExp(1 / average_serice_time)
+	random_arrival_time = generateExp(lambda_value)
 
-	return
+	sum_arrival_rate += random_arrival_time
+
+	# New Event Object
+	# self, burst,arrivalTime, pType, pId
+	chicken_deluxe = Process(random_service_time, Clock + random_arrival_time, ARRIVAL, ++processCount)
+	event_Queue.append(chicken_deluxe)
+
+
 # Three parts in the init
 
 def Init_Process():
