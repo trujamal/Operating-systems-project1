@@ -23,8 +23,19 @@ class Process:
 	preemptive_time: float
 	float_initial_wait: float
 	process_type: int
-	id: int
+	pId: int
 
+def __init__(self, burst,arrivalTime, pType, pId):
+	service_time = burst
+	arrival_time = arrivalTime
+	remaining_time = burst
+	completion_time = 0
+	found = False  ## process being found
+	how_long_in_queue =  0
+	preemptive_time = 0
+	float_initial_wait: float
+	process_type =  pType
+	self.pId =  int
 
 
 
