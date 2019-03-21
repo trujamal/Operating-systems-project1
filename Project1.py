@@ -18,7 +18,16 @@ class Process:
 	arrival_time: float
 	remaining_time: float
 	completion_time: float
+	found: bool ## process being found
+	how_long_in_queue: float
+	preemptive_time: float
+	float_initial_wait: float
+	process_type: int
 	id: int
+
+
+
+
 
 
 class Event(object):
@@ -38,7 +47,7 @@ def schedule_event(type, time, other_val):
 	print("Scheduling Event Beings")
 	#creates a new event and places it in the event queue based on its time.
 
-
+	return
 # Three parts in the init
 
 def Init_Process():
@@ -48,34 +57,36 @@ def Init_Process():
 	# Ready Queue (No proceses within it)
 	CPU_idle = True
 	# Init Event Queue w/ arrivals.
-
+	return
 
 def get_event():
-
-def process_arrival(event):
-	# Checking to see if its true
-	if (CPU_idle == 1):
-		CPU_idle == 0
-		schedule_event(dep, event_time + service_time)
-	else
-		#Place P in Ready queue
-
-def process_departure(event):
-	if(readqueue == 0) # Check to see if ready queue is empty
-		CPU_idle = 1
-	else
-		remove_process(from_readqueue)
-		schedule_event(dep, event_time + s);
+	return
 
 
-while (!End_condition):
-	event = get_event()
-	clock = event -> time
-
-	switch(event->type):
-		case ARR:
-			# Arrival case call function
-	process_arrival(event)
-		case DEP:
-			# Arrival case call function
-process_depature(event)
+# def process_arrival(event):
+# 	# Checking to see if its true
+# 	if (CPU_idle == 1):
+# 		CPU_idle == 0
+# 		schedule_event(dep, event_time + service_time)
+# 	else
+# 		#Place P in Ready queue
+#
+# def process_departure(event):
+# 	if(readqueue == 0) # Check to see if ready queue is empty
+# 		CPU_idle = 1
+# 	else
+# 		remove_process(from_readqueue)
+# 		schedule_event(dep, event_time + s);
+#
+#
+# while (!End_condition):
+# 	event = get_event()
+# 	clock = event -> time
+#
+# 	switch(event->type):
+# 		case ARR:
+# 			# Arrival case call function
+# 	process_arrival(event)
+# 		case DEP:
+# 			# Arrival case call function
+# process_depature(event)
