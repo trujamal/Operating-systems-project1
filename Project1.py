@@ -17,17 +17,19 @@ import math
 event_Queue = []
 ARRIVAL = 1
 DEPARTURE = 2
-QUANTUM = 3
 Clock = 0.0
+
+# Constants
 AVGSERVICETIME: float
 SUMSERVICETIME: float
 SUMWAITTIME: float
 SUMARRIVALTIME: float
 ISBUSY: bool
 
-lambda_value = 4 ## input Argument
-average_serice_time = 5 ## Input Argument
-processCount = 0
+lambda_value = None
+average_service_time = None
+processCount = None
+quantum_value = None
 
 #@dataclass  # Struct Creation
 class Process:
@@ -88,7 +90,7 @@ def generateRandomNumber():
 #Testing  Changes 2
 def schedule_event():
 	print("Scheduling Event Beings")  # creates a new event and places it in the event queue based on its time.
-	random_service_time = generateExp(1 / average_serice_time)
+	random_service_time = generateExp(1 / average_service_time)
 	random_arrival_time = generateExp(lambda_value)
 	sum_arrival_rate = 0
 	sum_arrival_rate =  sum_arrival_rate + random_arrival_time
@@ -123,8 +125,28 @@ def run_Simulator(scheudler):
 
 ## START OF MAIN
 if __name__ == "__main__":
+	if len(sys.argv) > 4:
+		scheduler = int(sys.argv[1])
+		lambda_value = float(sys.argv[2])
+		average_service_time = float(sys.argv[3])
+		if len(sys.argv) == 5:
+			quantum_value = int(sys.argv[4])
+			pass
+	else:
+		# Run -> edit configurations -> arguments
+		print("Please type in required arguments.")
+		print("1st arg (Pick Scheduler 1-4)")
+		print("2nd arg (Avg Arrival Time)")
+		print("3rd arg (Avg Service Time)")
+		try:
+			if sys.argv[1] == '4':
+				print("4rd arg (Size of Q)")
+		except IndexError:
+			pass
+
+
 	randomNumber = generateRandomNumber()
-	schedule_event()
+	# schedule_event()
 	print("Program Completed")
 	event_Vector = []
 
