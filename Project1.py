@@ -18,8 +18,11 @@ event_Queue = []
 ARRIVAL = 1
 DEPARTURE = 2
 QUANTUM = 3
-Clock: float
-
+Clock =  0.0
+average_service_time = 10  ## Input argu
+lambda_value = .5  ## Second Argument from main
+sum_arrival_rate = 0
+processCount = 0
 #@dataclass  # Struct Creation
 class Process:
 	service_time: float
@@ -34,17 +37,17 @@ class Process:
 	pId: int
 
 
-def __init__(burst, arrivalTime, pType, processID):
-	service_time = burst
-	arrival_time = arrivalTime
-	remaining_time = burst
-	completion_time = 0
-	found = False  ## process being found
-	how_long_in_queue =  0
-	preemptive_time = 0
-	float_initial_wait = 0.0
-	process_type =  pType
-	pId = processID
+	def __init__(self,burst, arrivalTime, pType, processID):
+		service_time = burst
+		arrival_time = arrivalTime
+		remaining_time = burst
+		completion_time = 0
+		found = False  ## process being found
+		how_long_in_queue =  0
+		preemptive_time = 0
+		float_initial_wait = 0.0
+		process_type =  pType
+		pId = processID
 
 class Event:
 	time: float
@@ -67,17 +70,23 @@ def generateRandomNumber():
 	return our_randomNumber
 
 #Testing  Changes 2
-def schedule_event(average_serice_time, lambda_value, sum_arrival_rate, simClock, processCount):
+def schedule_event():
 	print("Scheduling Event Beings")  # creates a new event and places it in the event queue based on its time.
-	random_service_time = generateExp(1 / average_serice_time)
+	random_service_time = generateExp(1 / average_service_time)
 	random_arrival_time = generateExp(lambda_value)
 
-	sum_arrival_rate += random_arrival_time
+	sum_arrival_rate =+ random_arrival_time
 
 	# New Event Object
 	# self, burst,arrivalTime, pType, pId
-	chicken_deluxe = Process(random_service_time, Clock + random_arrival_time, ARRIVAL, ++processCount)
+
+	chicken_deluxe = Process(random_service_time, (Clock + random_arrival_time), ARRIVAL, processCount+1)
+
 	event_Queue.append(chicken_deluxe)
+
+
+
+
 
 
 # Three parts in the init
@@ -101,9 +110,13 @@ def get_event():
 def main():
 	print("GOOGLE IT ELLIOT")
 	randomNumber = generateRandomNumber()
+	schedule_event()
+
+
+
 
 	print("Program Completed")
-	event_Vector = []
+
 
 
 
