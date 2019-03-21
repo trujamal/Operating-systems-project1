@@ -25,28 +25,25 @@ SUMWAITTIME: float
 SUMARRIVALTIME: float
 ISBUSY: bool
 
-
-
 lambda_value = 4 ## input Argument
 average_serice_time = 5 ## Input Argument
 processCount = 0
 
 #@dataclass  # Struct Creation
 class Process:
-	service_time: float
-	arrival_time: float
-	remaining_time: float
-	completion_time: float
-	found: bool ## process being found
-	how_long_in_queue: float
-	preemptive_time: float
-	float_initial_wait: float
-	process_type: int
-	pId: int
+	# service_time: float
+	# arrival_time: float
+	# remaining_time: float
+	# completion_time: float
+	# found: bool ## process being found
+	# how_long_in_queue: float
+	# preemptive_time: float
+	# float_initial_wait: float
+	# process_type: int
+	# pId: int
 
-
-# Simmulator Initialization
-	def initSimmulator():
+	# Simmulator Initialization
+	def initSimmulator(self):
 		Clock = 0
 		SUMSERVICETIME = 0
 		SUMWAITTIME = 0
@@ -56,16 +53,16 @@ class Process:
 	
 # Process Initialization
 	def __init__(self, burst, arrivalTime, pType, processID):
-		service_time = burst
-		arrival_time = arrivalTime
-		remaining_time = burst
-		completion_time = 0
-		found = False  ## process being found
-		how_long_in_queue =  0
-		preemptive_time = 0
-		float_initial_wait = 0.0
-		process_type =  pType
-		pId = processID
+		self.service_time = burst
+		self.arrival_time = arrivalTime
+		self.remaining_time = burst
+		self.completion_time = 0
+		self.found = False
+		self.how_long_in_queue = 0
+		self.preemptive_time = 0
+		self.float_initial_wait = 0.0
+		self.process_type = pType
+		self.pId = processID
 
 
 class Event:
@@ -120,24 +117,16 @@ def get_event():
 def run_Simulator(scheudler):
 	proces_Count = 0
 
+
 	return 0
 
 
 ## START OF MAIN
-def main():
-	print("GOOGLE IT ELLIOT")
+if __name__ == "__main__":
 	randomNumber = generateRandomNumber()
-
 	schedule_event()
-
 	print("Program Completed")
 	event_Vector = []
-
-
-
-
-main()
-
 
 # def process_arrival(event):
 # 	# Checking to see if its true
