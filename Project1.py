@@ -51,7 +51,7 @@ class Event:
 def generateRandomNumber():
 	our_randomNumber = float(random.randint(0, sys.maxsize))
 	our_randomNumber = our_randomNumber / sys.maxsize
-	print(our_randomNumber)
+	return our_randomNumber
 
 #Testing  Changes 2
 def schedule_event(type, time, other_val):
@@ -79,6 +79,7 @@ def get_event():
 ## START OF MAIN
 def main():
 	print("GOOGLE IT ELLIOT")
+	randomNumber = generateRandomNumber()
 
 	print("Program Completed")
 	event_Vector = []
