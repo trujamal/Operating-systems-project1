@@ -25,6 +25,7 @@ SUMSERVICETIME: float
 SUMWAITTIME: float
 SUMARRIVALTIME: float
 ISBUSY: bool
+END_CONDITION = 10000 ##  number of Processes that be processsed and stuff to terminate
 
 lambda_value = None
 average_service_time = None
@@ -68,6 +69,8 @@ class Process:
 
 
 class Event:
+
+
 	time: float
 	type: type
 	kind: type
@@ -97,8 +100,8 @@ def schedule_event():
 
 	# New Event Object
 	# self, burst,arrivalTime, pType, pId
-	chicken_deluxe = Process(random_service_time, Clock + random_arrival_time, ARRIVAL, (processCount + 1) )
-	event_Queue.append(chicken_deluxe)
+	event_process = Process(random_service_time, Clock + random_arrival_time, ARRIVAL, (processCount + 1) )
+	event_Queue.append(event_process)
 	print(event_Queue[0])
 
 # Three parts in the init
@@ -122,8 +125,61 @@ def run_Simulator(scheudler):
 
 	return 0
 
+def First_Come_First_Serve(eventQueue):
+	ISBUSY = True;
+
+	## EventQueue w/arrivales;
+	counter = 0
+	while ( counter < END_CONDITION):
+		event = eventQueue.getEvent()
+	return
+
+
+		#ounter+1
+# 		event = getEvent();  ## takes first event from ##event queue and /assigns it to event
+# 		clock = event -> time;
+# 		switch(event -> type)
+# 		case
+# 		arival:
+# 		processArrival(event)
+# 	case
+# 	Dep:
+# 	processDeparture(event)
+#
+#
+# ## Round Robin Time Slice would be part arrival or departure can't remember
+#
+#
+# processArrical(event)
+# {
+#
+# 	If(Cpu_Idle == 1)
+# {
+# 	cpu_Idle = 0;
+# schedule_Event(Departure, EventTime, service
+# }
+# else
+# {
+# 	## put P (process in R.Q (Ready Queue) .
+# }
+# }
+#
+# processDeparture(event)
+# {
+# if (R_Q == Empty)
+# {
+# 	Cpu_Idle = 1;
+# }
+# else
+# {
+# 	## remvove process from R.Q
+# 	## Schedule event (Dep, Event Time + s
+# }
+# }
+
 
 ## START OF MAIN
+
 if __name__ == "__main__":
 	if len(sys.argv) > 4:
 		scheduler = int(sys.argv[1])
@@ -140,7 +196,7 @@ if __name__ == "__main__":
 		print("3rd arg (Avg Service Time)")
 		try:
 			if sys.argv[1] == '4':
-				print("4rd arg (Size of Q)")
+				print("4th arg (Size of Q)")
 		except IndexError:
 			pass
 
