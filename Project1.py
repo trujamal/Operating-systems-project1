@@ -31,7 +31,7 @@ lambda_value = None
 average_service_time = None
 processCount = None
 quantum_value = None
-readyQueue = []
+
 #@dataclass  # Struct Creation
 class Process:
 	# service_time: float
@@ -67,30 +67,13 @@ class Process:
 		self.process_type = pType
 		self.pId = processID
 
-	def processArrival(event):
-		if (ISBUSY == False):
-			ISBUSY = True
-			schedule_event()
-		else:
-			readyQueue.append(event)
-
-		return
-
-
-	def processDeparture(self):
-		return
-
 
 class Event:
+
+
 	time: float
 	type: type
 	kind: type
-	state : int
-
-
-
-	#def __init__():
-
 	#next_event: Event
 
 
@@ -112,8 +95,8 @@ def schedule_event():
 	print("Scheduling Event Beings")  # creates a new event and places it in the event queue based on its time.
 	random_service_time = generateExp(1 / average_service_time)
 	random_arrival_time = generateExp(lambda_value)
-	#sum_arrival_rate = 0
-	#sum_arrival_rate =  sum_arrival_rate + random_arrival_time
+	sum_arrival_rate = 0
+	sum_arrival_rate =  sum_arrival_rate + random_arrival_time
 
 	# New Event Object
 	# self, burst,arrivalTime, pType, pId
