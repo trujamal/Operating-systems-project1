@@ -28,6 +28,7 @@ ISBUSY: bool
 END_CONDITION = 10000 ##  number of Processes that be processsed and stuff to terminate
 
 lambda_value = None
+sum_arrival_rate = None
 average_service_time = None
 processCount = None
 quantum_value = None
@@ -95,8 +96,7 @@ def schedule_event():
 	print("Scheduling Event Beings")  # creates a new event and places it in the event queue based on its time.
 	random_service_time = generateExp(1 / average_service_time)
 	random_arrival_time = generateExp(lambda_value)
-	sum_arrival_rate = 0
-	sum_arrival_rate =  sum_arrival_rate + random_arrival_time
+	sum_arrival_rate = random_arrival_time
 
 	# New Event Object
 	# self, burst,arrivalTime, pType, pId
@@ -135,7 +135,7 @@ def First_Come_First_Serve(eventQueue):
 	return
 
 
-		#ounter+1
+# ounter+1
 # 		event = getEvent();  ## takes first event from ##event queue and /assigns it to event
 # 		clock = event -> time;
 # 		switch(event -> type)
@@ -181,7 +181,7 @@ def First_Come_First_Serve(eventQueue):
 ## START OF MAIN
 
 if __name__ == "__main__":
-	if len(sys.argv) > 4:
+	if len(sys.argv) >= 4:
 		scheduler = int(sys.argv[1])
 		lambda_value = float(sys.argv[2])
 		average_service_time = float(sys.argv[3])
@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
 
 	randomNumber = generateRandomNumber()
-	# schedule_event()
+	schedule_event()
 	print("Program Completed")
 	event_Vector = []
 
