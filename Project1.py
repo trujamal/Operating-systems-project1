@@ -18,7 +18,7 @@ class Simmulator:
 		self.__clock = 0
 		self.__sum_service_time = 0
 		self.__sum_wait_time = 0
-		self.__sume_arrival_time = 0
+		self.__sum_arrival_time = 0
 		self.__is_busy = False
 		self.__scheduler = scheduler
 		self.__quantum_value = quantum_value
@@ -29,7 +29,7 @@ class Simmulator:
 
 		self.readyQ = ReadyQueue()
 
-	def run(self):		
+	def run(self):
 		#print (self.events.event_Queue)
 
 		if scheduler == 1:
@@ -45,12 +45,12 @@ class Simmulator:
 			#TODO
 			pass
 		else:
-			print ('bad args')
+			print('bad args')
 
 	def fcfs(self):
 		count = 0
 		while count != self.__end_condition:
-			
+
 			curr_event = self.events.event_Queue[count] #getting next event
 			self.__clock = self.__clock + curr_event['arrival_time'] #setting the clock
 
@@ -58,8 +58,40 @@ class Simmulator:
 				self.processArrival(self.readyQ, curr_event)
 			if (self.events.event_Queue[count]['process_type'] == 'departed'):
 				self.processDeparture(self.readyQ, curr_event)
-				
-			count = count + 1	 
+
+			count = count + 1
+
+	def srtf(self):
+		count = 0
+		while count != self.__end_condition:
+			pass
+
+	def hrrn(self):
+		count = 0
+		__event_Queue_Size = len(self.events.event_Queue)
+
+		while count != self.__end_condition:
+
+			if self.events.event_Queue[count]['process_type'] == 'arrived':
+				self.readyQ.scheduleEvent(self.events['process_type'], self.events, self.events['service_time'])
+				if self.__is_busy == False:
+					self.__is_busy = True
+					self.events.event_Queue[count]['process_type'] = 'departed'
+					self.events.event_Queue[count]['arrival_time'] = self.__clock + self.events.event_Queue[count][
+						'service_time']
+				else:
+					self.events.event_Queue.pop(0)
+				# self.readyQ.erase(self)
+
+			if self.events.event_Queue[count]['process_type'] == 'departed':
+				__priority_Level = float(0)
+				count = count + 1
+				pass
+
+	def rr(self):
+		count = 0
+		while count != self.__end_condition:
+			pass
 
 	def processArrival(self, readyQ, event):
 		time = event['service_time'] + self.__clock
@@ -70,7 +102,7 @@ class Simmulator:
 			#TODO: place in ready queue
 			pass
 
-		readyQ.scheduleEvent('arrival', event, time) #used to keep 1 arrival coming into the ready queue		
+		readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
 
 	def processDeparture(self, readyQ, event):
 		time = event['service_time'] + self.__clock
@@ -85,11 +117,11 @@ class Simmulator:
 class Event:
 
 	def __init__(self):
-		self.event_Queue = [] 
+		self.event_Queue = []
 
 	def createEvents(self, lambda_value, average_service_time, clock, end_condition):
 		print("Scheduling Event Beings")  # creates a new event and places it in the event queue based on its time.
-		
+
 		for process_count in range(end_condition):
 			random_service_time = generateExp(1 / average_service_time)
 			random_arrival_time = generateExp(lambda_value)
@@ -97,16 +129,16 @@ class Event:
 
 	def eventArrival(self, service_time, arrival_time, process_count):
 		return {
-			'service_time' : service_time,
-			'arrival_time' : arrival_time,
-			'remaining_time' : None,
-			'completion_time' : None,
-			'found' : False,
-			'how_long_in_queue' : None, 
-			'preemptive_time' : None,
-			'float_initial_wait' : None,
-			'process_type' : 'arrived',
-			'pId' : process_count
+			'service_time': service_time,
+			'arrival_time': arrival_time,
+			'remaining_time': None,
+			'completion_time': None,
+			'found': False,
+			'how_long_in_queue': None,
+			'preemptive_time': None,
+			'float_initial_wait': None,
+			'process_type': 'arrived',
+			'pId': process_count
 		}
 
 #####################################################################################
@@ -114,11 +146,11 @@ class ReadyQueue:
 
 	def __init__(self):
 		self.readyQ = []
-	
-	def isempty(self):
-		return (len(self.readyQ) == 0) 
 
-	def scheduleEvent(self, type, event, time):
+	def isempty(self):
+		return (len(self.readyQ) == 0)
+
+	def scheduleEvent(self, type: object, event: object, time: object) -> object:
 		print (event)
 		#TODO create a new event and places it in the queue based on its time
 		#(make a copy of what is needed and place it)
