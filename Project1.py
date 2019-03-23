@@ -24,7 +24,7 @@ class Simmulator:
 		self.__is_busy = False
 		self.__scheduler = scheduler
 		self.__quantum_value = quantum_value
-		self.__end_condition = 10
+		self.__end_condition = 10000
 
 		self.events = Event()
 		self.events.createEvents(lambda_value, average_service_time, self.__clock, self.__end_condition)
@@ -57,24 +57,24 @@ class Simmulator:
 		count = 0
 		while count != self.__end_condition:
 			head_event = self.events.event_Queue[count]  # getting next event
-		
-			if (self.events.event_Queue[count]['arrival_time'] >= self.__clock): # put in ready que
-				self.processArrival(self.readyQ, head_event)
+			try:
+				if (head_event['arrival_time'] >= self.__clock): # put in ready que
+					self.processArrival(self.readyQ, head_event)
 
 			#put this in try catch
 			#to avoid index errors if readyyq is empty and system is idle
-			try:
-				if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
+
+				elif (self.readyQ.readyQ[count]['process_status'] == 'departed'):
 					head_event['process_status'] = 'departed'
 					self.processDeparture(self.readyQ, head_event)
 					print ('pros dep')
-				elif (self.readyQ.readyQ[0]['process_status'] == 'arrived'):
+				elif (self.readyQ.readyQ[count]['process_status'] == 'arrived'):
 					head_event['process_status'] = 'arrived'
 					self.processArrival(self.readyQ, head_event)
 					print('pros arrival')
 
 
-				print ((str(self.readyQ.readyQ[0])) + '\n')
+				print ( str(self.__clock) + (str(self.readyQ.readyQ[count])) + '\n')
 			except IndexError:
 				print (str(count) + '\n')  
 				pass		
@@ -121,8 +121,11 @@ class Simmulator:
 		if (self.checkifbusy()):
 			readyQ.scheduleEvent('arrived', event, self.__clock)	
 		else:
+			event["completion_time"] = self.__clock + event['remaining_time']
 			self.__CPU = copy.deepcopy(event)
+
 			readyQ.scheduleEvent('departed', event, self.__clock)
+
 		
 
 		# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
@@ -189,7 +192,7 @@ class ReadyQueue:
 		return next(iter(self.readyQ), None)
 	
 	def sortQ(self): # sorts the readyQ 	
-		self.readyQ.sort(key=lambda k: k['pId'])
+		self.readyQ.sort(key=lambda k: k['arrival_time'])
 
 	def scheduleEvent(self, Event_type, event, time):
 
