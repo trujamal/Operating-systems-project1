@@ -2,6 +2,7 @@ import random
 import sys
 import math
 
+
 # Project 1
 # In this project, we are going to build a discrete-time event
 # simulator for a number of CPU schedulers on a single CPU system.
@@ -30,19 +31,19 @@ class Simmulator:
 		self.readyQ = ReadyQueue()
 
 	def run(self):
-		#print (self.events.event_Queue)
+		# print (self.events.event_Queue)
 
 		if scheduler == 1:
-			#First Come First Serve
-			self.fcfs()
+			# First Come First Serve
+			self.fcfs()  # @todo fully implement this function
 		elif scheduler == 2:
-			#TODO
+			self.srtf()  # @todo fully implement this function
 			pass
 		elif scheduler == 3:
-			#TODO
+			self.hrrn()  # @todo fully implement this function
 			pass
 		elif scheduler == 4:
-			#TODO
+			self.rr()  # @todo fully implement this function
 			pass
 		else:
 			print('bad args')
@@ -51,8 +52,8 @@ class Simmulator:
 		count = 0
 		while count != self.__end_condition:
 
-			curr_event = self.events.event_Queue[count] #getting next event
-			self.__clock = self.__clock + curr_event['arrival_time'] #setting the clock
+			curr_event = self.events.event_Queue[count]  # getting next event
+			self.__clock = self.__clock + curr_event['arrival_time']  # setting the clock
 
 			if (self.events.event_Queue[count]['process_type'] == 'arrived'):
 				self.processArrival(self.readyQ, curr_event)
@@ -81,7 +82,7 @@ class Simmulator:
 						'service_time']
 				else:
 					self.events.event_Queue.pop(0)
-				# self.readyQ.erase(self)
+			# self.readyQ.erase(self)
 
 			if self.events.event_Queue[count]['process_type'] == 'departed':
 				__priority_Level = float(0)
@@ -99,7 +100,7 @@ class Simmulator:
 			self.__is_busy = True
 			readyQ.scheduleEvent('departure', event, time)
 		else:
-			#TODO: place in ready queue
+			# TODO: place in ready queue
 			pass
 
 		readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
@@ -110,7 +111,8 @@ class Simmulator:
 			self.__is_busy = True
 		else:
 			readyQ.scheduleEvent('departure', event, time)
-			#TODO remove process from ready queue
+	# TODO remove process from ready queue
+
 
 #####################################################################################
 
@@ -125,7 +127,8 @@ class Event:
 		for process_count in range(end_condition):
 			random_service_time = generateExp(1 / average_service_time)
 			random_arrival_time = generateExp(lambda_value)
-			self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, process_count + 1))
+			self.event_Queue.append(
+				self.eventArrival(random_service_time, clock + random_arrival_time, process_count + 1, ))
 
 	def eventArrival(self, service_time, arrival_time, process_count):
 		return {
@@ -141,6 +144,7 @@ class Event:
 			'pId': process_count
 		}
 
+
 #####################################################################################
 class ReadyQueue:
 
@@ -150,11 +154,23 @@ class ReadyQueue:
 	def isempty(self):
 		return (len(self.readyQ) == 0)
 
+	def front(self):
+		return next(iter(self.readyQ), None)
+
 	def scheduleEvent(self, type: object, event: object, time: object) -> object:
-		print (event)
-		#TODO create a new event and places it in the queue based on its time
-		#(make a copy of what is needed and place it)
-		#TODO sort the eventqueue based on time to make this easier
+		print(event)
+
+		# Generate random service time and arrival time
+		random_service_time = generateExp(1 / average_service_time)
+		random_arrival_time = generateExp(lambda_value)
+
+		self.__sum_arrival_time = self.__sum_arrival_time + random_service_time
+
+		Event.event_Queue.append(
+			self.eventArrival(random_service_time, self.clock + random_arrival_time, self.process_count + 1))
+		# TODO create a new event and places it in the queue based on its time
+		# (make a copy of what is needed and place it)
+		# TODO sort the eventqueue based on time to make this easier
 		pass
 
 
@@ -162,18 +178,19 @@ class ReadyQueue:
 
 def generateExp(chickenLambda):
 	x = 0
-	while(x == 0):
+	while (x == 0):
 		random_Number = generateRandomNumber()
-		x = (-1/chickenLambda)*math.log(random_Number)
+		x = (-1 / chickenLambda) * math.log(random_Number)
 	return x
+
 
 def generateRandomNumber():
 	our_randomNumber = float(random.randint(0, sys.maxsize))
 	our_randomNumber = our_randomNumber / sys.maxsize
 	return our_randomNumber
 
-#####################################################################################
 
+#####################################################################################
 
 
 #####################################################################################
@@ -205,5 +222,3 @@ if __name__ == "__main__":
 	print("Program Completed")
 
 #####################################################################################
-
-
