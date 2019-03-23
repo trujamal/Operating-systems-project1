@@ -128,34 +128,27 @@ class Simmulator:
 			pass
 
 	def processArrival(self, readyQ, event):
-		self.__clock = self.__clock + head_event['arrival_time']  # setting the clock
-		time = event['service_time'] + self.__clock
+		self.__clock = event['arrival_time']  # setting the clock
 
-	
 		if (self.checkifbusy()):
-			readyQ.scheduleEvent('arrived', event, time)	
+			readyQ.scheduleEvent('arrived', event, self.__clock)	
 		else:
 			self.__CPU = copy.deepcopy(event)
-			readyQ.scheduleEvent('departed', event, time)
+			readyQ.scheduleEvent('departed', event, self.__clock + event['service_time'])
 		
 
 		# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
 
 	def processDeparture(self, readyQ, event):
-		time = event['service_time'] + self.__clock
-		
+		self.__clock = self.__clock + event['remaining_time'] # setting the clock
+
 		if event['remaining_time'] == 0:
 			self.__CPU = None
 		else:
-			readyQ.scheduleEvent('arrived', event, time)
+			readyQ.scheduleEvent('arrived', event, self.__clock)
 
 		self.readyQ.removeEvent(event)
 		
-		# if (not readyQ.isempty() and not checkifbusy()): # idle
-
-		# else:
-			# self.__CPU = copy.deepcopy(event)
-
 
 
 
