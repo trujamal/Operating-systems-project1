@@ -55,13 +55,24 @@ class Simmulator:
 			curr_event = self.events.event_Queue[count]  # getting next event
 			self.__clock = self.__clock + curr_event['arrival_time']  # setting the clock
 
-			if (self.events.event_Queue[count]['process_type'] == 'arrived'):
+
+			#prcess departure
+			#set busy to false
+			#remove first element
+
+			if (self.events.event_Queue[count]['process_status'] == 'arrived'):
+				curr_event['process_status'] = 'arrived'
 				self.processArrival(self.readyQ, curr_event)
-			if (self.events.event_Queue[count]['process_type'] == 'departed'):
+			if (self.events.event_Queue[count]['process_status'] == 'departed'):
+				curr_event['process_status'] = 'departed'
 				self.processDeparture(self.readyQ, curr_event)
 
 			count = count + 1
-		print (self.readyQ.readyQ)
+
+		for chickend in self.readyQ.readyQ:
+			print (chickend)
+			print ()
+
 
 	def srtf(self):
 		count = 0
@@ -75,18 +86,18 @@ class Simmulator:
 
 		# while count != self.__end_condition:
 
-		# 	if self.events.event_Queue[count]['process_type'] == 'arrived':
-		# 		self.readyQ.scheduleEvent(self.events['process_type'], self.events, self.events['service_time'])
+		# 	if self.events.event_Queue[count]['process_status'] == 'arrived':
+		# 		self.readyQ.scheduleEvent(self.events['process_status'], self.events, self.events['service_time'])
 		# 		if self.__is_busy == False:
 		# 			self.__is_busy = True
-		# 			self.events.event_Queue[count]['process_type'] = 'departed'
+		# 			self.events.event_Queue[count]['process_status'] = 'departed'
 		# 			self.events.event_Queue[count]['arrival_time'] = self.__clock + self.events.event_Queue[count][
 		# 				'service_time']
 		# 		else:
 		# 			self.events.event_Queue.pop(0)
 		# 	# self.readyQ.erase(self)
 
-		# 	if self.events.event_Queue[count]['process_type'] == 'departed':
+		# 	if self.events.event_Queue[count]['process_status'] == 'departed':
 		# 		__priority_Level = float(0)
 		# 		count = count + 1
 		# 		pass
@@ -102,6 +113,7 @@ class Simmulator:
 			self.__is_busy = True
 			readyQ.scheduleEvent('departure', event, time)
 		else:
+			readyQ.scheduleEvent('arrival', event, time)
 			# TODO: place in ready queue
 			pass
 
@@ -110,9 +122,11 @@ class Simmulator:
 	def processDeparture(self, readyQ, event):
 		time = event['service_time'] + self.__clock
 		if (self.readyQ.isempty()):
-			self.__is_busy = True
+			self.__is_busy = False
 		else:
 			readyQ.scheduleEvent('departure', event, time)
+		
+		self.readyQ.removeEvent()
 	# TODO remove process from ready queue
 
 
@@ -134,6 +148,7 @@ class Event:
 
 	def eventArrival(self, service_time, arrival_time, process_count):
 		return {
+			'pId': process_count,
 			'service_time': service_time,
 			'arrival_time': arrival_time,
 			'remaining_time': None,
@@ -142,8 +157,7 @@ class Event:
 			'how_long_in_queue': None,
 			'preemptive_time': None,
 			'float_initial_wait': None,
-			'process_type': 'arrived',
-			'pId': process_count
+			'process_status': 'arrived'
 		}
 
 
@@ -165,13 +179,13 @@ class ReadyQueue:
 	def scheduleEvent(self, Event_type, event, time):
 
 		# Generate random service time and arrival time
-		random_service_time = generateExp(1 / average_service_time)
-		random_arrival_time = generateExp(lambda_value)
+		# random_service_time = generateExp(1 / average_service_time)
+		# random_arrival_time = generateExp(lambda_value)
 		# self.__sum_arrival_time = self.__sum_arrival_time + random_service_time
 
-		event['process_type'] = Event_type
+		event['process_status'] = Event_type
 		event['remaining_time'] = time
-		
+
 		self.readyQ.append(event)
 		self.sortQ()
 
