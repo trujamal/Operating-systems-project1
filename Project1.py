@@ -56,42 +56,30 @@ class Simmulator:
 		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
 		count = 0
 		while count != self.__end_condition:
-
-
 			head_event = self.events.event_Queue[count]  # getting next event
 		
-			#prcess departure
-			#set busy to false
-			#remove first element
-
 			if (self.events.event_Queue[count]['arrival_time'] >= self.__clock): # put in ready que
 				self.processArrival(self.readyQ, head_event)
 
-			# if (self.events.event_Queue[count]['process_status'] == 'arrived'):
-			# 	head_event['process_status'] = 'arrived'
-			# 	self.processArrival(self.readyQ, head_event)
-
 			#put this in try catch
 			#to avoid index errors if readyyq is empty and system is idle
-			if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
-				head_event['process_status'] = 'departed'
-				self.processDeparture(self.readyQ, head_event)
-				print ('pros dep')
-			elif (self.readyQ.readyQ[0]['process_status'] == 'arrived'):
-				head_event['process_status'] = 'arrived'
-				self.processArrival(self.readyQ, head_event)
-				print('pros arrival')
+			try:
+				if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
+					head_event['process_status'] = 'departed'
+					self.processDeparture(self.readyQ, head_event)
+					print ('pros dep')
+				elif (self.readyQ.readyQ[0]['process_status'] == 'arrived'):
+					head_event['process_status'] = 'arrived'
+					self.processArrival(self.readyQ, head_event)
+					print('pros arrival')
 
 
-			print ((str(self.readyQ.readyQ[0])) + '\n')
+				print ((str(self.readyQ.readyQ[0])) + '\n')
+			except IndexError:
+				print (str(count) + '\n')  
+				pass		
 			count = count + 1
 
-
-
-		# for chickend in self.readyQ.readyQ:
-		# 	# print ('event: ' + str(chickend['pId']) + ' status: ' + chickend['process_status'] + '\n')
-		# 	print (str(chickend) + '\n')
-		
 
 
 	def srtf(self):
@@ -134,7 +122,7 @@ class Simmulator:
 			readyQ.scheduleEvent('arrived', event, self.__clock)	
 		else:
 			self.__CPU = copy.deepcopy(event)
-			readyQ.scheduleEvent('departed', event, self.__clock + event['service_time'])
+			readyQ.scheduleEvent('departed', event, self.__clock)
 		
 
 		# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
@@ -142,7 +130,7 @@ class Simmulator:
 	def processDeparture(self, readyQ, event):
 		self.__clock = self.__clock + event['remaining_time'] # setting the clock
 
-		if event['remaining_time'] == 0:
+		if event['completion_time'] > 0:
 			self.__CPU = None
 		else:
 			readyQ.scheduleEvent('arrived', event, self.__clock)
@@ -178,8 +166,8 @@ class Event:
 			'pId': process_count,
 			'service_time': service_time,
 			'arrival_time': arrival_time,
-			'remaining_time': None,
-			'completion_time': None,
+			'remaining_time': service_time,
+			'completion_time': 0,
 			'found': False,
 			'how_long_in_queue': None,
 			'preemptive_time': None,
@@ -211,7 +199,10 @@ class ReadyQueue:
 		# self.__sum_arrival_time = self.__sum_arrival_time + random_service_time
 
 		event['process_status'] = Event_type
-		event['remaining_time'] = time
+
+		if scheduler == 1:
+			if Event_type == 'departed':
+				event['completion_time'] = time + event['service_time']
 
 		newEvent = copy.deepcopy(event)
 		self.readyQ.append(newEvent)
