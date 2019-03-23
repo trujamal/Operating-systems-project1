@@ -52,38 +52,45 @@ class Simmulator:
 			print('bad args')
 
 	def fcfs(self):
+
+		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
 		count = 0
 		while count != self.__end_condition:
 
-			curr_event = self.events.event_Queue[count]  # getting next event
-			self.__clock = self.__clock + curr_event['arrival_time']  # setting the clock
 
-
+			head_event = self.events.event_Queue[count]  # getting next event
+		
 			#prcess departure
 			#set busy to false
 			#remove first element
 
-			if (self.events.event_Queue[count]['process_status'] == 'arrived'):
-				curr_event['process_status'] = 'arrived'
-				self.processArrival(self.readyQ, curr_event)
+			if (self.events.event_Queue[count]['arrival_time'] >= self.__clock): # put in ready que
+				self.processArrival(self.readyQ, head_event)
 
+			# if (self.events.event_Queue[count]['process_status'] == 'arrived'):
+			# 	head_event['process_status'] = 'arrived'
+			# 	self.processArrival(self.readyQ, head_event)
 
+			#put this in try catch
+			#to avoid index errors if readyyq is empty and system is idle
 			if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
-				curr_event['process_status'] = 'departed'
-				self.processDeparture(self.readyQ, curr_event)
+				head_event['process_status'] = 'departed'
+				self.processDeparture(self.readyQ, head_event)
 				print ('pros dep')
 			elif (self.readyQ.readyQ[0]['process_status'] == 'arrived'):
-				curr_event['process_status'] = 'arrived'
-				self.processDeparture(self.readyQ, curr_event)
+				head_event['process_status'] = 'arrived'
+				self.processArrival(self.readyQ, head_event)
 				print('pros arrival')
 
 
+			print ((str(self.readyQ.readyQ[0])) + '\n')
 			count = count + 1
 
 
 
-		for chickend in self.readyQ.readyQ:
-			print ('event: ' + str(chickend['pId']) + ' status: ' + chickend['process_status'] + '\n')
+		# for chickend in self.readyQ.readyQ:
+		# 	# print ('event: ' + str(chickend['pId']) + ' status: ' + chickend['process_status'] + '\n')
+		# 	print (str(chickend) + '\n')
 		
 
 
@@ -121,8 +128,10 @@ class Simmulator:
 			pass
 
 	def processArrival(self, readyQ, event):
+		self.__clock = self.__clock + head_event['arrival_time']  # setting the clock
 		time = event['service_time'] + self.__clock
 
+	
 		if (self.checkifbusy()):
 			readyQ.scheduleEvent('arrived', event, time)	
 		else:
