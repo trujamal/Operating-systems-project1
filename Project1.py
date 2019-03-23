@@ -1,6 +1,7 @@
 import random
 import sys
 import math
+import copy
 
 
 # Project 1
@@ -63,15 +64,20 @@ class Simmulator:
 			if (self.events.event_Queue[count]['process_status'] == 'arrived'):
 				curr_event['process_status'] = 'arrived'
 				self.processArrival(self.readyQ, curr_event)
-			if (self.events.event_Queue[count]['process_status'] == 'departed'):
+			if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
 				curr_event['process_status'] = 'departed'
 				self.processDeparture(self.readyQ, curr_event)
+				print ('pros dep')
+
+
 
 			count = count + 1
 
+
+
 		for chickend in self.readyQ.readyQ:
-			print (chickend)
-			print ()
+			print ('event: ' + str(chickend['pId']) + ' status: ' + chickend['process_status'] + '\n')
+		
 
 
 	def srtf(self):
@@ -114,10 +120,8 @@ class Simmulator:
 			readyQ.scheduleEvent('departure', event, time)
 		else:
 			readyQ.scheduleEvent('arrival', event, time)
-			# TODO: place in ready queue
-			pass
 
-		readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
+		# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
 
 	def processDeparture(self, readyQ, event):
 		time = event['service_time'] + self.__clock
@@ -125,9 +129,9 @@ class Simmulator:
 			self.__is_busy = False
 		else:
 			readyQ.scheduleEvent('departure', event, time)
+
 		
-		self.readyQ.removeEvent()
-	# TODO remove process from ready queue
+		self.readyQ.removeEvent(event)
 
 
 #####################################################################################
@@ -186,7 +190,8 @@ class ReadyQueue:
 		event['process_status'] = Event_type
 		event['remaining_time'] = time
 
-		self.readyQ.append(event)
+		newEvent = copy.deepcopy(event)
+		self.readyQ.append(newEvent)
 		self.sortQ()
 
 	def removeEvent(self, event):
