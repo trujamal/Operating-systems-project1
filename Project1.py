@@ -68,7 +68,10 @@ class Simmulator:
 				curr_event['process_status'] = 'departed'
 				self.processDeparture(self.readyQ, curr_event)
 				print ('pros dep')
-
+			if (self.readyQ.readyQ[0]['process_status'] == 'arrived'):
+				curr_event['process_status'] = 'arrived'
+				self.processDeparture(self.readyQ, curr_event)
+				print('pros arrival')
 
 
 			count = count + 1
@@ -117,9 +120,9 @@ class Simmulator:
 		time = event['service_time'] + self.__clock
 		if (not self.__is_busy):
 			self.__is_busy = True
-			readyQ.scheduleEvent('departure', event, time)
+			readyQ.scheduleEvent('departed', event, time)
 		else:
-			readyQ.scheduleEvent('arrival', event, time)
+			readyQ.scheduleEvent('arrived', event, time)
 
 		# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
 
@@ -128,10 +131,11 @@ class Simmulator:
 		if (self.readyQ.isempty()):
 			self.__is_busy = False
 		else:
-			readyQ.scheduleEvent('departure', event, time)
-
+			readyQ.scheduleEvent('departed', event, time)
+			self.__is_busy = True
 		
 		self.readyQ.removeEvent(event)
+
 
 
 #####################################################################################
