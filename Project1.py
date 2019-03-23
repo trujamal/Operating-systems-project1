@@ -61,6 +61,7 @@ class Simmulator:
 				self.processDeparture(self.readyQ, curr_event)
 
 			count = count + 1
+		print (self.readyQ.readyQ)
 
 	def srtf(self):
 		count = 0
@@ -68,26 +69,27 @@ class Simmulator:
 			pass
 
 	def hrrn(self):
-		count = 0
-		__event_Queue_Size = len(self.events.event_Queue)
+		pass
+		# count = 0
+		# __event_Queue_Size = len(self.events.event_Queue)
 
-		while count != self.__end_condition:
+		# while count != self.__end_condition:
 
-			if self.events.event_Queue[count]['process_type'] == 'arrived':
-				self.readyQ.scheduleEvent(self.events['process_type'], self.events, self.events['service_time'])
-				if self.__is_busy == False:
-					self.__is_busy = True
-					self.events.event_Queue[count]['process_type'] = 'departed'
-					self.events.event_Queue[count]['arrival_time'] = self.__clock + self.events.event_Queue[count][
-						'service_time']
-				else:
-					self.events.event_Queue.pop(0)
-			# self.readyQ.erase(self)
+		# 	if self.events.event_Queue[count]['process_type'] == 'arrived':
+		# 		self.readyQ.scheduleEvent(self.events['process_type'], self.events, self.events['service_time'])
+		# 		if self.__is_busy == False:
+		# 			self.__is_busy = True
+		# 			self.events.event_Queue[count]['process_type'] = 'departed'
+		# 			self.events.event_Queue[count]['arrival_time'] = self.__clock + self.events.event_Queue[count][
+		# 				'service_time']
+		# 		else:
+		# 			self.events.event_Queue.pop(0)
+		# 	# self.readyQ.erase(self)
 
-			if self.events.event_Queue[count]['process_type'] == 'departed':
-				__priority_Level = float(0)
-				count = count + 1
-				pass
+		# 	if self.events.event_Queue[count]['process_type'] == 'departed':
+		# 		__priority_Level = float(0)
+		# 		count = count + 1
+		# 		pass
 
 	def rr(self):
 		count = 0
@@ -156,22 +158,26 @@ class ReadyQueue:
 
 	def front(self):
 		return next(iter(self.readyQ), None)
+	
+	def sortQ(self): # sorts the readyQ 	
+		self.readyQ.sort(key=lambda k: k['pId'])
 
-	def scheduleEvent(self, type: object, event: object, time: object) -> object:
-		print(event)
+	def scheduleEvent(self, Event_type, event, time):
 
 		# Generate random service time and arrival time
 		random_service_time = generateExp(1 / average_service_time)
 		random_arrival_time = generateExp(lambda_value)
+		# self.__sum_arrival_time = self.__sum_arrival_time + random_service_time
 
-		self.__sum_arrival_time = self.__sum_arrival_time + random_service_time
+		event['process_type'] = Event_type
+		event['remaining_time'] = time
+		
+		self.readyQ.append(event)
+		self.sortQ()
 
-		Event.event_Queue.append(
-			self.eventArrival(random_service_time, self.clock + random_arrival_time, self.process_count + 1))
-		# TODO create a new event and places it in the queue based on its time
-		# (make a copy of what is needed and place it)
-		# TODO sort the eventqueue based on time to make this easier
-		pass
+	def removeEvent(self, event):
+		del self.readyQ[0]
+		self.sortQ()
 
 
 #####################################################################################
