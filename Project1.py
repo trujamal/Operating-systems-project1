@@ -31,6 +31,8 @@ class Simmulator:
 
 		self.readyQ = ReadyQueue()
 
+		self.__CPU = None
+
 	def run(self):
 		# print (self.events.event_Queue)
 
@@ -64,11 +66,13 @@ class Simmulator:
 			if (self.events.event_Queue[count]['process_status'] == 'arrived'):
 				curr_event['process_status'] = 'arrived'
 				self.processArrival(self.readyQ, curr_event)
+
+
 			if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
 				curr_event['process_status'] = 'departed'
 				self.processDeparture(self.readyQ, curr_event)
 				print ('pros dep')
-			if (self.readyQ.readyQ[0]['process_status'] == 'arrived'):
+			elif (self.readyQ.readyQ[0]['process_status'] == 'arrived'):
 				curr_event['process_status'] = 'arrived'
 				self.processDeparture(self.readyQ, curr_event)
 				print('pros arrival')
@@ -118,23 +122,36 @@ class Simmulator:
 
 	def processArrival(self, readyQ, event):
 		time = event['service_time'] + self.__clock
-		if (not self.__is_busy):
-			self.__is_busy = True
-			readyQ.scheduleEvent('departed', event, time)
+
+		if (self.checkifbusy()):
+			readyQ.scheduleEvent('arrived', event, time)	
 		else:
-			readyQ.scheduleEvent('arrived', event, time)
+			self.__CPU = copy.deepcopy(event)
+			readyQ.scheduleEvent('departed', event, time)
+		
 
 		# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
 
 	def processDeparture(self, readyQ, event):
 		time = event['service_time'] + self.__clock
-		if (self.readyQ.isempty()):
-			self.__is_busy = False
-		else:
-			readyQ.scheduleEvent('departed', event, time)
-			self.__is_busy = True
 		
+		if event['remaining_time'] == 0:
+			self.__CPU = None
+		else:
+			readyQ.scheduleEvent('arrived', event, time)
+
 		self.readyQ.removeEvent(event)
+		
+		# if (not readyQ.isempty() and not checkifbusy()): # idle
+
+		# else:
+			# self.__CPU = copy.deepcopy(event)
+
+
+
+
+	def checkifbusy(self):
+		return (self.__CPU != None) #returns true if busy
 
 
 
