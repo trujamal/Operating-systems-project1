@@ -308,7 +308,8 @@ class ReadyQueue:
 		# SRTF
 		if scheduler == 2:
 			if Event_type == 'departed':
-				event['completion_time'] = time + event['service_time']
+				event['remaining_time'] = event['remaining_time'] - time
+				event['remaining_time'] = event['service_time'] - time
 
 		# HRRN
 		if scheduler == 3:
