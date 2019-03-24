@@ -94,6 +94,14 @@ class Simmulator:
 		head_event = self.events.event_Queue[count]
 		are_we_done = 0
 		while count != self.__end_condition:
+			#Set clock
+			#sort remaining time of events.
+			#take event[0] from Event Queue and put in Reeady queue
+			#update remaining times of EventQueue
+			# resort remaining times,
+			#process arrival from event [0] from event queue.
+
+
 			pass
 
 	def hrrn(self):
@@ -117,14 +125,14 @@ class Simmulator:
 					self.processArrival(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
 					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
-					print("Faster than clock ")
+					print("HRRN- Faster than clock ")
 
 				elif (self.__is_busy == False):
 					print("PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
 					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
-					print('Slower than clock and CPU not busy')
+					print('HRRN- Slower than clock and CPU not busy')
 
 				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
 					count = count + 1
@@ -132,7 +140,7 @@ class Simmulator:
 					self.processDeparture(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
 					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
-					print('Farewell, Fernando')
+					print('HRRN- Farewell, Fernando')
 
 				# print(str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
 				pass
