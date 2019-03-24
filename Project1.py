@@ -92,8 +92,22 @@ class Simmulator:
 		self.events.event_Queue.sort(key=lambda k: k['remaining_time'])
 		count = 0
 		head_event = self.events.event_Queue[count]
+		shortest_event = self.events.event_Queue[0]
 		are_we_done = 0
 		while count != self.__end_condition:
+			print("PID Arrival " + str(head_event['pId']) + str(head_event['remaining_time']))
+			self.processArrival(self.readyQ, head_event)
+			self.events.event_Queue.sort(key=lambda k: k['remaining_time'])
+			if(head_event['remaining_time'] < shortest_event['remaining_time']):
+				print("PID departure " + str(head_event['pId']) + str(head_event['remaining_time']))
+				self.processDeparture(self.readyQ,head_event)
+				print("PID Arrival After Departure" + str(shortest_event['pId']) + str(head_event['remaining_time']))
+				self.processArrival(self.readyQ, shortest_event)
+			else:
+				print("Hitting Else")
+
+
+
 			#Set clock
 			#sort remaining time of events.
 			#take event[0] from Event Queue and put in Reeady queue
@@ -101,7 +115,7 @@ class Simmulator:
 			# resort remaining times,
 			#process arrival from event [0] from event queue.
 
-
+			count = count + 1
 			pass
 
 	def hrrn(self):
