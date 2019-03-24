@@ -58,20 +58,22 @@ class Simmulator:
 		head_event = self.events.event_Queue[count]
 		while count != self.__end_condition:  # getting next event
 			try:
-
+				head_event = self.events.event_Queue[count]
 
 				if (head_event['arrival_time'] >= self.__clock and self.__is_busy == False): # put in ready que
-					print("PID" + str(head_event['pId']))
+					print("PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)
-					print("i Arrived with a time higher than the clock ")
-				
+					print("Faster than clock ")
+					# count = count + 1
+
+
 
 				elif (self.__is_busy == False):
-					print("PID" + str(head_event['pId']))
+					print("PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)
-					print('I arrived but my time was slower than the clock so I should be placed in RQ')
-					count = count + 1
-					head_event = self.events.event_Queue[count]
+					print('Slower than clock and CPU not busy')
+					# count = count + 1
+
 				# elif (self.__is_busy == False and self.readyQ.readyQ):
 				# 	self.processArrival(self.readyQ, head_event)
 				# 	print("Idle ")
@@ -79,8 +81,8 @@ class Simmulator:
 			#to avoid index errors if readyyq is empty and system is idle
 
 				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
-
-					print("PID" + str(head_event['pId']))
+					count = count + 1
+					print("PID " + str(head_event['pId']))
 					self.processDeparture(self.readyQ, head_event)
 
 					print ('Farewell, Fernando')
@@ -89,7 +91,7 @@ class Simmulator:
 
 
 
-				#print ( str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
+				print ( str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
 			except IndexError:
 				print (str(count) + '\n')
 				pass
