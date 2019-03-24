@@ -112,17 +112,18 @@ class Simmulator:
 		while are_we_done != self.__end_condition:  # getting next event
 			try:
 				head_event = self.events.event_Queue[count]
-
-				if (head_event['arrival_time'] >= self.__clock and self.__is_busy == False):  # put in ready que
+				if (head_event['ratio'] >= self.__sum_wait_time and self.__is_busy == False):  # put in ready que
 					print("PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
+					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
 					print("Faster than clock ")
 
 				elif (self.__is_busy == False):
 					print("PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
+					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
 					print('Slower than clock and CPU not busy')
 
 				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
@@ -130,6 +131,7 @@ class Simmulator:
 					print("PID " + str(head_event['pId']))
 					self.processDeparture(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
+					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
 					print('Farewell, Fernando')
 
 				# print(str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
@@ -158,7 +160,7 @@ class Simmulator:
 			else:
 				readyQ.scheduleEvent('arrived', event, self.__clock)
 
-		# SRTF
+		# SRTF --Temporary Code for the basis run to work
 		if scheduler == 2:
 			if not self.__is_busy:
 				self.__is_busy = True
@@ -176,7 +178,7 @@ class Simmulator:
 			else:
 				readyQ.scheduleEvent('arrived', event, self.__clock)
 
-		# RR
+		# RR --Temporary Code for the basis run to work
 		if scheduler == 4:
 			if not self.__is_busy:
 				self.__is_busy = True
@@ -203,16 +205,10 @@ class Simmulator:
 
 		# HRRN
 		if scheduler == 3:
-
-			hrr_variable = -9999  # Lower Bound for process
-			
-			if not self.readyQ.isempty():
-				self.__sum_wait_time = self.__sum_wait_time + self.__clock
-				pass
-			event['completion_time'] = self.__clock
 			event['waiting_time'] = self.__clock - event['arrival_time']
-			self.readyQ.removeEvent(event)
+			event['completion_time'] = self.__clock
 			self.hrrnRatio(self.readyQ.readyQ)
+			self.readyQ.removeEvent(event)
 			self.__is_busy = False
 			self.__CPU = None
 
@@ -223,7 +219,8 @@ class Simmulator:
 	def hrrnRatio(self, ready_queue):
 		for event in ready_queue:
 			event['ratio'] = (event['waiting_time'] + event['service_time']) / event['service_time']
-		self.events.event_Queue.sort(key=lambda k: k['ratio'], reverse=True)
+		self.events.event_Queue.sort(key=lambda k: k['ratio'],
+		                             reverse=True)  # Not sorting the queue or updating it with useful info
 
 #####################################################################################
 
@@ -294,7 +291,8 @@ class ReadyQueue:
 		# HRRN
 		if scheduler == 3:
 			if Event_type == 'departed':
-				event['completion_time'] = time + event['service_time']
+				event['completion_time'] = time + event[
+					'service_time']  # Want to implement it to where it does the ratio response here
 
 		# RR
 		if scheduler == 4:
