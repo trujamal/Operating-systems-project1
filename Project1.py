@@ -62,22 +62,25 @@ class Simmulator:
 
 				if (head_event['arrival_time'] >= self.__clock): # put in ready que
 					self.processArrival(self.readyQ, head_event)
-				elif (not self.checkifbusy() and self.readyQ.readyQ[0]["process_status"] != None ):
+					print("the Top One")
+				else:
 					self.processArrival(self.readyQ, head_event)
+					print('Process Arrival')
 
+				# elif (self.__is_busy == False and self.readyQ.readyQ):
+				# 	self.processArrival(self.readyQ, head_event)
+				# 	print("Idle ")
 			#put this in try catch
 			#to avoid index errors if readyyq is empty and system is idle
 
-				if (self.readyQ.readyQ[count]['process_status'] == 'departed'):
+				if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
 					self.processDeparture(self.readyQ, head_event)
-					print ('pros dep')
-				elif (self.readyQ.readyQ[0]['process_status'] == 'arrived'):
-					self.processDeparture(self.readyQ, head_event)
-					print('pros arrival')
+					print ('The Bottom')
 
 
 
-				print ( str(self.__clock) + (str(self.readyQ.readyQ[count])) + '\n')
+
+				print ( str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
 			except IndexError:
 				print (str(count) + '\n')
 				pass
@@ -120,34 +123,47 @@ class Simmulator:
 
 	def processArrival(self, readyQ, event):
 		self.__clock = event['arrival_time']  # setting the clock
-
-		if (self.checkifbusy()):
-			readyQ.scheduleEvent('arrived', event, self.__clock)
-		else:
-			event["completion_time"] = self.__clock + event['remaining_time']
-			self.__CPU = copy.deepcopy(event)
-
-			readyQ.scheduleEvent('departed', event, self.__clock)
+		if (scheduler == 1):
+			if (self.__is_busy == False):
+				self.__is_busy = True
+				self.__CPU = copy.deepcopy(event)
+				readyQ.scheduleEvent('departed', event, self.__clock)
+			else:
+				readyQ.scheduleEvent('arrived', event, self.__clock)
 
 		
 
 		# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
 
 	def processDeparture(self, readyQ, event):
-		self.__clock = self.__clock + event['remaining_time'] # setting the clock
-
-		if event['completion_time'] > 0:
+		self.__clock = self.__clock + event['remaining_time']
+		if (scheduler == 1): ## FCFS
+			event['completion_time']  = self.__clock
+			self.readyQ.removeEvent(event)
+			self.__is_busy = False
 			self.__CPU = None
-		else:
-			readyQ.scheduleEvent('arrived', event, self.__clock)
 
-		self.readyQ.removeEvent(event)
+
+
+
+
+		# self.__clock = self.__clock + event['remaining_time'] # setting the clock
+		# event["completion_time"] = self.__clock
+		# if event['completion_time'] > 0:
+		#
+		#
+		# else:
+		# 	readyQ.scheduleEvent('arrived', event, self.__clock)
+		#
+		# self.readyQ.removeEvent(event)
+		# self.__CPU = None
+		# self.__is_busy == False
+
 		
 
 
 
-	def checkifbusy(self):
-		return (self.__CPU != None) #returns true if busy
+
 
 
 
