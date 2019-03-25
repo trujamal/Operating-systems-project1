@@ -74,6 +74,7 @@ class Simmulator:
 			data_file.write("\n")
 			data_file.write(str(average_service_time))
 			data_file.write("\n")
+		# Implement other writing values
 
 		print("Program Completed")
 		pass
@@ -200,7 +201,8 @@ class Simmulator:
 						else:
 							del self.readyQ.readyQ[0]
 							head_event = self.events.event_Queue[count]
-				# if ready q has something in it and CPU has someething in it.
+
+			# if ready q has something in it and CPU has something in it.
 			if(self.readyQ.readyQ and self.__is_busy == True):
 
 				#TODO check if head event is what we want to append if head event is right?
@@ -328,38 +330,32 @@ class Simmulator:
 			try:
 				head_event = self.events.event_Queue[count]  # Should be at zero
 
-				if not self.__is_busy:  # If the process is not busy
+				# If Ready Q is empty and the CPU is Idle
+				if not self.readyQ.readyQ and self.__is_busy == False:
+					print("Queue is deadass empty, and there's nothing in it, now we do what is below.")
+					print("PID " + str(head_event['pId']))
+					self.processArrival(self.readyQ, head_event)  # Process first test
+					are_we_done = are_we_done + 1
+					self.__sum_wait_time = self.__sum_arrival_time + self.__clock
+
+				# Something in Cpu and nothing in Ready Queue
+				if not self.readyQ.readyQ and self.__is_busy == True:
+					print("Processor has something inside it but needs to place info into the ReadyQ")
+
+
 					pass
 
-				if self.__is_busy:  # If the process is busy
-					pass
-
-
-
-				if (head_event['ratio'] >= self.__sum_wait_time and self.__is_busy == False):  # put in ready que
-					print("PID " + str(head_event['pId']))
-					self.processArrival(self.readyQ, head_event)
-					are_we_done = are_we_done + 1
-					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
-					print("HRRN- Faster than clock ")
-
-				elif (self.__is_busy == False):
-					print("PID " + str(head_event['pId']))
-					self.processArrival(self.readyQ, head_event)
-					are_we_done = are_we_done + 1
-					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
-					print('HRRN- Slower than clock and CPU not busy')
-
-				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
+				# if Ready q has something in it and CPU has something in it.
+				if self.readyQ.readyQ and self.__is_busy == True:
+					print("Both queues have something in it")
 					count = count + 1
 					print("PID " + str(head_event['pId']))
 					self.processDeparture(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
-					self.__sum_wait_time = self.__sum_wait_time + self.__clock  # This is to help get the ratio wait time.
-					print('HRRN- Farewell, Fernando')
+					# This is to help get the ratio wait time.
+					self.__sum_wait_time = self.__sum_wait_time + self.__clock
 
-				# print(str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
-				pass
+				print(str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
 			except IndexError:
 				print('index error: ' + str(count) + '\n')
 			pass
@@ -386,7 +382,7 @@ class Simmulator:
 
 		# SRTF --Temporary Code for the basis run to work
 		if scheduler == 2:
-			if (self.__is_busy == False): # if there is no line, go straight in
+			if not self.__is_busy:  # if there is no line, go straight in
 				readyQ.scheduleEvent('departed', event, self.__clock)
 			else:
 				# if its busy it will get interrupted
