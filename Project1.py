@@ -316,10 +316,10 @@ class Simmulator:
 	def hrrn(self):
 
 		#  shortest response time first w (waiting time)+s(service time) / (service time)
-		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
 		count = 0
-		head_event = self.events.event_Queue[count]
 		are_we_done = 0
+		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
+		head_event = self.events.event_Queue[count]
 
 		for i in range(0, len(self.events.event_Queue)):
 			print(self.events.event_Queue[i]['pId'])
@@ -333,7 +333,7 @@ class Simmulator:
 				# If Ready Q is empty and the CPU is Idle
 				if not self.readyQ.readyQ and self.__is_busy == False:
 					print("Queue is deadass empty, and there's nothing in it, now we do what is below.")
-					print("PID " + str(head_event['pId']))
+					print("JOINING PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)  # Process first test
 					are_we_done = are_we_done + 1
 					self.__sum_wait_time = self.__sum_arrival_time + self.__clock
@@ -342,14 +342,13 @@ class Simmulator:
 				if not self.readyQ.readyQ and self.__is_busy == True:
 					print("Processor has something inside it but needs to place info into the ReadyQ")
 
-
 					pass
 
 				# if Ready q has something in it and CPU has something in it.
 				if self.readyQ.readyQ and self.__is_busy == True:
 					print("Both queues have something in it")
 					count = count + 1
-					print("PID " + str(head_event['pId']))
+					print("LEAVING PID " + str(head_event['pId']))
 					self.processDeparture(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
 					# This is to help get the ratio wait time.
@@ -403,6 +402,8 @@ class Simmulator:
 				readyQ.scheduleEvent('departed', event, self.__clock)
 			else:
 				readyQ.scheduleEvent('arrived', event, self.__clock)
+				readyQ.sortQ()
+				self.readyQ.sortQ()
 
 		# RR --Temporary Code for the basis run to work
 		if scheduler == 4:
@@ -445,7 +446,6 @@ class Simmulator:
 		if scheduler == 3:
 			event['waiting_time'] = self.__clock - event['arrival_time']
 			event['completion_time'] = self.__clock
-			self.hrrnRatio(self.readyQ.readyQ)
 			self.readyQ.removeEvent(event)
 			self.__is_busy = False
 			self.__CPU = None
@@ -454,11 +454,6 @@ class Simmulator:
 		if scheduler == 4:
 			pass
 
-	def hrrnRatio(self, ready_queue):
-		for event in ready_queue:
-			event['ratio'] = (event['waiting_time'] + event['service_time']) / event['service_time']
-		self.events.event_Queue.sort(key=lambda k: k['ratio'],
-		                             reverse=True)  # Not sorting the queue or updating it with useful info
 
 #####################################################################################
 
@@ -495,7 +490,7 @@ class Event:
 			'float_initial_wait': None,
 			'process_status': 'arrived',
 			'ratio': 0,
-			'cpu_arrival_time' : 0
+			'cpu_arrival_time': 0
 		}
 
 
@@ -506,7 +501,7 @@ class ReadyQueue:
 		self.readyQ = []
 
 	def isempty(self):
-		return (len(self.readyQ) == 0)
+		return len(self.readyQ) == 0
 
 	def front(self):
 		return next(iter(self.readyQ), None)
@@ -516,6 +511,8 @@ class ReadyQueue:
 			self.readyQ.sort(key=lambda k: k['arrival_time'])
 		elif scheduler == 2:
 			self.readyQ.sort(key=lambda k: k['remaining_time'])
+		elif scheduler == 3:
+			self.readyQ.sort(key=lambda k: k['ratio'])
 
 	def scheduleEvent(self, Event_type, event, time):
 
