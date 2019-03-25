@@ -136,39 +136,48 @@ class Simmulator:
 
 					#TODO check if this is correct because it just figures out what to do when the proicess is finished... pretty confident
 					if(self.__CPU['remaining_time'] <= 0):
-						head_event['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU['cpu_arrival_time']
-						del self.readyQ.readyQ[0]
-						self.__CPU = None
-						self.__is_busy = False
-						head_event = self.events.event_Queue[count] ## Check this When shit breaks
-					# Make a copy of whats in the CPU
-					temp = copy.deepcopy(self.__CPU)
-					# Add that to the Ready Queue
-					self.readyQ.readyQ.append(temp)
-					# Clear the CPU and set the busy to fasle.
-
-
-					# Sort the ready queue with both events in it.
-					self.readyQ.sortQ()
-					# The event that is first should be the shortest event and we set that in the CPU
-					# If the CPU did change processes. Put the new one into the CPU
-					if (self.__CPU != self.readyQ.readyQ[0]):
+						self.__CPU['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU['cpu_arrival_time']
 						self.__CPU = None
 						self.__is_busy = False
 						self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
 						self.__is_busy = True
-						self.__CPU['cpu_arrival_time'] =  self.__clock
 						del self.readyQ.readyQ[0]
-						#TODO figure out if this head event is right
-						head_event = self.events.event_Queue[count]
-					# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
+						count = count + 1
+
+
+
 					else:
-						del self.readyQ.readyQ[0]
-						head_event = self.events.event_Queue[count]
-			# if ready q has something in it and CPU has someething in it.
+						head_event = self.events.event_Queue[count] ## Check this When shit breaks
+						# Make a copy of whats in the CPU
+						temp = copy.deepcopy(self.__CPU)
+						# Add that to the Ready Queue
+						self.readyQ.readyQ.append(temp)
+						# Clear the CPU and set the busy to fasle.
+
+
+						# Sort the ready queue with both events in it.
+						self.readyQ.sortQ()
+						# The event that is first should be the shortest event and we set that in the CPU
+						# If the CPU did change processes. Put the new one into the CPU
+						if (self.__CPU != self.readyQ.readyQ[0]):
+							self.__CPU = None
+							self.__is_busy = False
+							self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
+							self.__is_busy = True
+							self.__CPU['cpu_arrival_time'] =  self.__clock
+							del self.readyQ.readyQ[0]
+							#TODO figure out if this head event is right
+							count = count + 1
+							head_event = self.events.event_Queue[count]
+						# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
+						else:
+							del self.readyQ.readyQ[0]
+							head_event = self.events.event_Queue[count]
+				# if ready q has something in it and CPU has someething in it.
 			if(self.readyQ.readyQ and self.__is_busy == True):
 
 				#TODO check if head event is what we want to append if head event is right?
+				head_event = self.events.event_Queue[count+1]
 				self.readyQ.readyQ.append(head_event)
 
 				# First time a process comes in, update the clocks to its arrival time,
@@ -190,13 +199,15 @@ class Simmulator:
 
 				# TODO Make sure this is right. When process ends
 				if (self.__CPU['remaining_time'] <= 0):
-					head_event['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU['cpu_arrival_time']
-					del self.readyQ.readyQ[0]
+					self.__CPU['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU['cpu_arrival_time']
+					self.readyQ.sortQ()
 					self.__CPU = None
 					self.__is_busy = False
+					self.__CPU = self.readyQ.readyQ[0]
+					del self.readyQ.readyQ[0]
+					self.__is_busy = True
 					#TODO Check Head event and count bullshit again.
-					head_event = self.events.event_Queue[count]  ## Check this When shit breaks
-
+					head_event = self.events.event_Queue[count-1]  ## Check this When shit breaks
 				else:
 					temp = copy.deepcopy(self.__CPU)
 					self.readyQ.readyQ.append(temp)
@@ -211,6 +222,7 @@ class Simmulator:
 						self.__CPU['cpu_arrival_time'] =  self.__clock
 						del self.readyQ.readyQ[0]
 						# TODO figure out if this head event is right
+						count = count + 1
 						head_event = self.events.event_Queue[count]
 					# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
 					else:
