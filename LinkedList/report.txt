@@ -1,0 +1,16 @@
+
+Scheduler 	Lambda 		AvgTs	 AvgTurnaround 	TotalThruput	CPU Util	Avg#ProcsInQ 	Quantum
+---------------------------------------------------------------------------------------------------------------
+FCFS()		1     		0.06	0.004304541	15.21307	0.0611616	1	0.01
+
+Scheduler 	Lambda 		AvgTs	 AvgTurnaround 	TotalThruput	CPU Util	Avg#ProcsInQ 	Quantum
+---------------------------------------------------------------------------------------------------------------
+HRRN()		1     		0.06	0.004298612	15.21307	0.0611616	1	0.01
+
+Scheduler 	Lambda 		AvgTs	 AvgTurnaround 	TotalThruput	CPU Util	Avg#ProcsInQ 	Quantum
+---------------------------------------------------------------------------------------------------------------
+SRTF()		1     		0.06	0.004179262	15.21307	0.0611616	0.9969605	0.01
+
+Scheduler 	Lambda 		AvgTs	 AvgTurnaround 	TotalThruput	CPU Util	Avg#ProcsInQ 	Quantum
+---------------------------------------------------------------------------------------------------------------
+RORO()		1     		0.06	0.004648668	15.213	0.06116132	1.004559	0.01
