@@ -94,36 +94,135 @@ class Simmulator:
 		head_event = self.events.event_Queue[0]
 		are_we_done = 0
 		while are_we_done != self.__end_condition:
+			## If Ready Q is empty and the CPU is Idle
+			if(not self.readyQ.readyQ and self.__is_busy == False):
+				## Puts the event in the ready q,
+				self.processArrival(self.readyQ, head_event)# put in Cpu
 
-			if(not self.readyQ.readyQ and self.__is_busy == False): #if ready queue is empty cpu not bust
-				self.processArrival(self.readyQ, head_event) # put in Cpu
+				## #TODO increment the count but not sure if correct?
+				count = count + 1
+
+				# sets the clock to the head event ( the first event in the event Queue)
 				self.__clock = head_event['arrival_time']
+				# put the first event from the event queue, ( head event) in the cpu and make it busy.
 				self.__CPU = copy.deepcopy(head_event)
 				self.__is_busy = True
+
+				# The cpu arrival time of the head event will meow be equal to the clock beacuse it was first event.
 				self.__CPU['cpu_arrival_time'] = self.__clock
-				self.__CPU['process_status'] = 'running'
-				count = count + 1
-				head_event = self.events.event_Queue[count]
-				are_we_done = are_we_done + 1
-			if(not self.readyQ.readyQ and self.__is_busy == True):
-				# check ready Q.readyQ if an error
-				self.readyQ.readyQ.append(head_event)
-				if (head_event['remaining_time'] == head_event['service_time']): ## First time being processed
-					self.__clock = head_event['arrival_time']
-					self.__CPU['remaining_time'] =  self.__CPU['remaining_time'] - self.__clock
-				else:
-					self.__clock = 0
-					self.__CPU['remaining_time'] = 0 ## Calculate this
-				temp = copy.deepcopy(self.__CPU)
-				self.readyQ.readyQ.append(temp)
-				self.__CPU = None
-				self.__is_busy = False
-				self.readyQ.sortQ()
-				self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
-				self.__CPU['cpu_arrival_time'] = 0 # figure this out
-				self.__is_busy = True
+				# Make sure you remove the event from the ready Q  Process Departure does this I beleive, will clean up later.
 				del self.readyQ.readyQ[0]
 
+				#TODO  need to figure out if this is right for count shit
+				head_event = self.events.event_Queue[count]
+
+				#TODO have fernando tell us if this is right.
+				are_we_done = are_we_done + 1
+
+			#  ## Something in Cpu and nothing in Ready Queue
+			if(not self.readyQ.readyQ and self.__is_busy == True):
+				#TODO make sure head event is currect in this scenario
+				self.readyQ.readyQ.append(head_event)
+				# First time an event is coming from the event queue and checking the ready q and cpu is busy
+				if (head_event['remaining_time'] == head_event['service_time']):
+					# This would be correct becasue its' the first time
+					self.__clock = head_event['arrival_time']
+
+					# the current clock set above was the last process that was in there if you subtract that from the arrival time you
+					# get the processing time.
+					self.__CPU['cpu_processing_time'] = self.__clock - self.__CPU['cpu_arrival_time']
+					# this is then uused to figure out remaining time. Checked out white board should be good.
+					self.__CPU['remaining_time'] =  self.__CPU['remaining_time'] - self.__CPU['cpu_processing_time']
+
+					#TODO check if this is correct because it just figures out what to do when the proicess is finished... pretty confident
+					if(self.__CPU['remaining_time'] <= 0):
+						head_event['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU['cpu_arrival_time']
+						del self.readyQ.readyQ[0]
+						self.__CPU = None
+						self.__is_busy = False
+						head_event = self.events.event_Queue[count] ## Check this When shit breaks
+					# Make a copy of whats in the CPU
+					temp = copy.deepcopy(self.__CPU)
+					# Add that to the Ready Queue
+					self.readyQ.readyQ.append(temp)
+					# Clear the CPU and set the busy to fasle.
+
+
+					# Sort the ready queue with both events in it.
+					self.readyQ.sortQ()
+					# The event that is first should be the shortest event and we set that in the CPU
+					# If the CPU did change processes. Put the new one into the CPU
+					if (self.__CPU != self.readyQ.readyQ[0]):
+						self.__CPU = None
+						self.__is_busy = False
+						self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
+						self.__is_busy = True
+						self.__CPU['cpu_arrival_time'] =  self.__clock
+						del self.readyQ.readyQ[0]
+						#TODO figure out if this head event is right
+						head_event = self.events.event_Queue[count]
+					# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
+					else:
+						del self.readyQ.readyQ[0]
+						head_event = self.events.event_Queue[count]
+			# if ready q has something in it and CPU has someething in it.
+			if(self.readyQ.readyQ and self.__is_busy == True):
+
+				#TODO check if head event is what we want to append if head event is right?
+				self.readyQ.readyQ.append(head_event)
+
+				# First time a process comes in, update the clocks to its arrival time,
+				# also update the one that's been in the CPU processing time with the new clock data
+				# The reamining time ius what is left./
+				if (head_event['remaining_time'] == head_event['service_time']): ## First time being processed
+					self.__clock = head_event['arrival_time']
+					self.__CPU['cpu_processing_time'] = self.__clock - self.__CPU['cpu_arrival_time']
+					self.__CPU['remaining_time'] =  self.__CPU['remaining_time'] - self.__CPU['cpu_processing_time']
+
+				# TODO make sure this is right if it not the first time.
+				else:
+					# Set the clock to how long the process in the CPU has been going.
+					self.__clock = self.__clock + self.__CPU['cpu_processing_time']
+					# Update the processing time of what was in the CPU with the new clock based off when it arrived.
+					self.__CPU['cpu_processing_time'] = self.__clock - self.__CPU['cpu_arrival_time']
+					# Remaining Time is self explanatory
+					self.__CPU['remaining_time'] = self.__CPU['remaining_time'] - self.__CPU['cpu_processing_time']
+
+				# TODO Make sure this is right. When process ends
+				if (self.__CPU['remaining_time'] <= 0):
+					head_event['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU['cpu_arrival_time']
+					del self.readyQ.readyQ[0]
+					self.__CPU = None
+					self.__is_busy = False
+					#TODO Check Head event and count bullshit again.
+					head_event = self.events.event_Queue[count]  ## Check this When shit breaks
+
+				else:
+					temp = copy.deepcopy(self.__CPU)
+					self.readyQ.readyQ.append(temp)
+					self.readyQ.sortQ()
+					# The event that is first should be the shortest event and we set that in the CPU
+					# If the CPU did change processes. Put the new one into the CPU
+					if (self.__CPU != self.readyQ.readyQ[0]):
+						self.__CPU = None
+						self.__is_busy = False
+						self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
+						self.__is_busy = True
+						self.__CPU['cpu_arrival_time'] =  self.__clock
+						del self.readyQ.readyQ[0]
+						# TODO figure out if this head event is right
+						head_event = self.events.event_Queue[count]
+					# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
+					else:
+						del self.readyQ.readyQ[0]
+
+						#TODO Check Count and Head event being right?
+						head_event = self.events.event_Queue[count]
+
+
+
+#TODO Delete or reference this block IDGAF
+########################################################################################################
 
 				## cpu is busy and ready Queue empty
 				# put incoming event into ready queue
@@ -131,33 +230,17 @@ class Simmulator:
 				# Take Event from CPU and add it to ready queue, and then sort ready queue
 				# readyqueue[0] goes into cpu.
 
-				self.processArrival(self.readyQ, head_event) ## put in ready Queue
-				count = count + 1
-				head_event = self.events.event_Queue[count]
-				are_we_done = are_we_done + 1
-			if (self.readyQ.readyQ and self.__is_busy == True):
-				## check ready queue and Cpu and put in cpu srtf and put order ready queue
-
-				self.processArrival(self.readyQ, head_event) ## put in CPU
-				self.processArrival(self.readyQ, head_event) ## Put in Ready Queue
+				# self.processArrival(self.readyQ, head_event) ## put in ready Queue
+				# count = count + 1
+				# head_event = self.events.event_Queue[count]
+				# are_we_done = are_we_done + 1
+			# if (self.readyQ.readyQ and self.__is_busy == True):
+			# 	## check ready queue and Cpu and put in cpu srtf and put order ready queue
+			#
+			# 	self.processArrival(self.readyQ, head_event) ## put in CPU
+			# 	self.processArrival(self.readyQ, head_event) ## Put in Ready Queue
 
 				# ready queue parameter might be wrong
-
-			
-			
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -185,9 +268,7 @@ class Simmulator:
 			# resort remaining times,
 			#process arrival from event [0] from event queue.
 
-			count = count + 1
-
-
+#####################################################################################################################
 
 			pass
 
@@ -266,9 +347,9 @@ class Simmulator:
 				readyQ.sortQ() #srtf is at index [0] in readyQ
 				
 				self.__is_busy = True
-				self.__CPU = copy.deepcopy(readyQ[0]) # put srtf in the cpu
-				readyQ[0]['cpu_arrival_time'] = self.__clock
-				readyQ.scheduleEvent('departed', readyQ[0], self.__clock) #schedule when it finishes
+				self.__CPU = copy.deepcopy(readyQ.readyQ[0]) # put srtf in the cpu
+				readyQ.readyQ[0]['cpu_arrival_time'] = self.__clock
+				readyQ.scheduleEvent('departed', readyQ.readyQ[0], self.__clock) #schedule when it finishes
 
 		# HRRN
 		if scheduler == 3:
@@ -362,6 +443,7 @@ class Event:
 			'service_time': service_time,
 			'arrival_time': arrival_time,
 			'remaining_time': service_time,
+			'cpu_processing_time': 0,
 			'completion_time': 0,
 			'found': False,
 			'waiting_time': 0,
