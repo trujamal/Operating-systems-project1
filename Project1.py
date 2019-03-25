@@ -222,6 +222,7 @@ class Simmulator:
 			if not self.__is_busy: # if there is no line, go straight in
 				self.__is_busy = True
 				self.__CPU = copy.deepcopy(event)
+				event['cpu_arrival_time'] = self.__clock
 				readyQ.scheduleEvent('departed', event, self.__clock)
 			else:
 				# if its busy it will get interrupted
@@ -267,7 +268,10 @@ class Simmulator:
 
 		# SRTF @todo
 		if scheduler == 2:
-			event['remaining_time'] = event['remaining_time'] -  (self.__clock - readyQ.readyQ[0]['cpu_arrival_time'])
+			if(event['remaining_time'] == event['service_time']): ## First time it a process is processed
+				event['remaining_time'] = event['remaining_time'] -  readyQ.readyQ[0]['cpu_arrival_time']
+			else:
+				event['remaining_time'] = event['remaining_time'] - (self.__clock - readyQ.readyQ[0]['cpu_arrival_time'])
 			if event['remaining_time'] == 0: # if the process is done 
 				self.readyQ.removeEvent(event)
 				# event['completion_time'] = self.__clock
