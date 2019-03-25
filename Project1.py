@@ -89,22 +89,54 @@ class Simmulator:
 
 
 	def srtf(self):
-		self.events.event_Queue.sort(key=lambda k: k['remaining_time'])
+		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
 		count = 0
 		head_event = self.events.event_Queue[count]
-		shortest_event = self.events.event_Queue[0]
 		are_we_done = 0
-		while count != self.__end_condition:
-			print("PID Arrival " + str(head_event['pId']) + str(head_event['remaining_time']))
-			self.processArrival(self.readyQ, head_event)
-			self.events.event_Queue.sort(key=lambda k: k['remaining_time'])
-			if(head_event['remaining_time'] < shortest_event['remaining_time']):
-				print("PID departure " + str(head_event['pId']) + str(head_event['remaining_time']))
-				self.processDeparture(self.readyQ,head_event)
-				print("PID Arrival After Departure" + str(shortest_event['pId']) + str(head_event['remaining_time']))
-				self.processArrival(self.readyQ, shortest_event)
-			else:
-				print("Hitting Else")
+		while are_we_done != self.__end_condition:
+
+			try:
+				head_event = self.events.event_Queue[count]
+
+				if (head_event['arrival_time'] >= self.__clock and self.__is_busy == False): # put in ready que
+					print("PID " + str(head_event['pId']))
+					self.processArrival(self.readyQ, head_event)
+					are_we_done = are_we_done + 1 
+					print("Faster than clock ")
+					
+				elif (self.__is_busy == False):
+					print("PID " + str(head_event['pId']))
+					self.processArrival(self.readyQ, head_event)
+					are_we_done = are_we_done + 1 
+					print('Slower than clock and CPU not busy')
+
+				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
+					count = count + 1
+					print("PID " + str(head_event['pId']))
+					self.processDeparture(self.readyQ, head_event)
+					are_we_done = are_we_done + 1
+					print('Farewell, Fernando')
+
+			except IndexError:
+				print('index error: ' + str(count) + '\n')
+				pass
+
+			
+			
+			# print("PID Arrival " + str(head_event['pId']) + ' ' + str(head_event['remaining_time']))
+			# self.processArrival(self.readyQ, head_event)
+			# self.readyQ.sortQ()
+
+
+			# if(head_event['remaining_time'] < shortest_event['remaining_time']):
+			# 	print("PID departure " + str(head_event['pId']) + str(head_event['remaining_time']))
+			# 	self.processDeparture(self.readyQ,head_event)
+			# 	print("PID Arrival After Departure" + str(shortest_event['pId']) + str(head_event['remaining_time']))
+			# 	self.processArrival(self.readyQ, shortest_event)
+			# 	are_we_done = are_we_done + 1
+			# 	count = count + 1
+			# else:
+			# 	print("Hitting Else")
 
 
 
@@ -116,6 +148,9 @@ class Simmulator:
 			#process arrival from event [0] from event queue.
 
 			count = count + 1
+
+
+
 			pass
 
 	def hrrn(self):
@@ -184,12 +219,20 @@ class Simmulator:
 
 		# SRTF --Temporary Code for the basis run to work
 		if scheduler == 2:
-			if not self.__is_busy:
+			if not self.__is_busy: # if there is no line, go straight in
 				self.__is_busy = True
 				self.__CPU = copy.deepcopy(event)
 				readyQ.scheduleEvent('departed', event, self.__clock)
 			else:
-				readyQ.scheduleEvent('arrived', event, self.__clock)
+				# if its busy it will get interrupted
+				readyQ.scheduleEvent('arrived', event, self.__clock) #put process in the queue
+				self.processDeparture(self.readyQ, self.__CPU) # take process out of the cpu and into the queue
+				readyQ.sortQ() #srtf is at index [0] in readyQ
+				
+				self.__is_busy = True
+				self.__CPU = copy.deepcopy(readyQ[0]) # put srtf in the cpu
+				readyQ[0]['cpu_arrival_time'] = self.__clock
+				readyQ.scheduleEvent('departed', readyQ[0], self.__clock) #schedule when it finishes
 
 		# HRRN
 		if scheduler == 3:
@@ -212,10 +255,11 @@ class Simmulator:
 		# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
 
 	def processDeparture(self, readyQ, event):
-		self.__clock = self.__clock + event['remaining_time']
 
 		# FCFS
 		if scheduler == 1:
+			self.__clock = self.__clock + event['remaining_time']
+
 			event['completion_time'] = self.__clock
 			self.readyQ.removeEvent(event)
 			self.__is_busy = False
@@ -223,7 +267,14 @@ class Simmulator:
 
 		# SRTF @todo
 		if scheduler == 2:
-			pass
+			event['remaining_time'] = event['remaining_time'] -  (self.__clock - readyQ.readyQ[0]['cpu_arrival_time'])
+			if event['remaining_time'] == 0: # if the process is done 
+				self.readyQ.removeEvent(event)
+				# event['completion_time'] = self.__clock
+			else: 
+				readyQ.scheduleEvent('arrived', event, self.__clock)
+			self.__is_busy = False
+			self.__CPU = None
 
 		# HRRN
 		if scheduler == 3:
@@ -272,7 +323,8 @@ class Event:
 			'preemptive_time': None,
 			'float_initial_wait': None,
 			'process_status': 'arrived',
-			'ratio': 0
+			'ratio': 0,
+			'cpu_arrival_time' : 0
 		}
 
 
@@ -288,8 +340,11 @@ class ReadyQueue:
 	def front(self):
 		return next(iter(self.readyQ), None)
 	
-	def sortQ(self): # sorts the readyQ 	
-		self.readyQ.sort(key=lambda k: k['arrival_time'])
+	def sortQ(self): # sorts the readyQ 
+		if scheduler == 1:
+			self.readyQ.sort(key=lambda k: k['arrival_time'])
+		elif scheduler == 2:
+			self.readyQ.sort(key=lambda k: k['remaining_time'])
 
 	def scheduleEvent(self, Event_type, event, time):
 
@@ -308,8 +363,10 @@ class ReadyQueue:
 		# SRTF
 		if scheduler == 2:
 			if Event_type == 'departed':
-				event['remaining_time'] = event['remaining_time'] - time
-				event['remaining_time'] = event['service_time'] - time
+				pass
+				# event['remaining_time'] = event['remaining_time'] - time
+				# event['remaining_time'] = event['service_time'] - time
+				# brain = on()
 
 		# HRRN
 		if scheduler == 3:
