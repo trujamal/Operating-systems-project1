@@ -51,6 +51,33 @@ class Simmulator:
 		else:
 			print('bad args')
 
+	def generate_report(self):
+
+		scheduler_value: str
+
+		if scheduler == 1:
+			scheduler_value = "FCFS()"
+		elif scheduler == 2:
+			scheduler_value = "SRTF()"
+		elif scheduler == 3:
+			scheduler_value = "HRRN()"
+		elif scheduler == 4:
+			scheduler_value = "RR()"
+
+		print(scheduler_value)
+
+		with open("Output.txt", "w+") as data_file:
+			print("Output is writing to: ", data_file.name)
+			data_file.write(scheduler_value)
+			data_file.write("\n")
+			data_file.write(str(lambda_value))
+			data_file.write("\n")
+			data_file.write(str(average_service_time))
+			data_file.write("\n")
+
+		print("Program Completed")
+		pass
+
 	def fcfs(self):
 
 		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
@@ -299,7 +326,16 @@ class Simmulator:
 
 		while are_we_done != self.__end_condition:  # getting next event
 			try:
-				head_event = self.events.event_Queue[count]
+				head_event = self.events.event_Queue[count]  # Should be at zero
+
+				if not self.__is_busy:  # If the process is not busy
+					pass
+
+				if self.__is_busy:  # If the process is busy
+					pass
+
+
+
 				if (head_event['ratio'] >= self.__sum_wait_time and self.__is_busy == False):  # put in ready que
 					print("PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)
@@ -571,7 +607,7 @@ if __name__ == "__main__":
 
 	sim = Simmulator(scheduler, lambda_value, average_service_time, quantum_value)
 	sim.run()
+	sim.generate_report()
 
-	print("Program Completed")
 
 #####################################################################################
