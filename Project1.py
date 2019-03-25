@@ -113,7 +113,7 @@ class Simmulator:
 				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
 					count = count + 1
 					print("PID " + str(head_event['pId']))
-					self.processDeparture(self.readyQ, head_event)
+					self.processDeparture(self.readyQ, self.readyQ.readyQ[0] )
 					are_we_done = are_we_done + 1
 					print('Farewell, Fernando')
 
@@ -269,9 +269,9 @@ class Simmulator:
 		# SRTF @todo
 		if scheduler == 2:
 			if(event['remaining_time'] == event['service_time']): ## First time it a process is processed
-				event['remaining_time'] = event['remaining_time'] -  readyQ.readyQ[0]['cpu_arrival_time']
+				event['remaining_time'] = event['remaining_time'] -  event['cpu_arrival_time']
 			else:
-				event['remaining_time'] = event['remaining_time'] - (self.__clock - readyQ.readyQ[0]['cpu_arrival_time'])
+				event['remaining_time'] = event['remaining_time'] - (self.__clock - event['cpu_arrival_time'])
 			if event['remaining_time'] == 0: # if the process is done 
 				self.readyQ.removeEvent(event)
 				# event['completion_time'] = self.__clock
@@ -279,6 +279,7 @@ class Simmulator:
 				readyQ.scheduleEvent('arrived', event, self.__clock)
 			self.__is_busy = False
 			self.__CPU = None
+
 
 		# HRRN
 		if scheduler == 3:
