@@ -268,18 +268,24 @@ class Simmulator:
 
 		# SRTF @todo
 		if scheduler == 2:
+			arrival_time = event['cpu_arrival_time']
+			burst_time = event['remaining_time']
+
 			if(event['remaining_time'] == event['service_time']): ## First time it a process is processed
 				event['remaining_time'] = event['remaining_time'] -  event['cpu_arrival_time']
 			else:
 				event['remaining_time'] = event['remaining_time'] - (self.__clock - event['cpu_arrival_time'])
+			
 			if event['remaining_time'] == 0: # if the process is done 
 				self.readyQ.removeEvent(event)
+				self.__clock = self.__clock + burst_time
 				# event['completion_time'] = self.__clock
 			else: 
-				readyQ.scheduleEvent('arrived', event, self.__clock)
+				self.__clock = self.__clock + event['remaining_time']
+				readyQ.scheduleEvent('arrived', event, self.__clock) #put event back in queue
+
 			self.__is_busy = False
 			self.__CPU = None
-
 
 		# HRRN
 		if scheduler == 3:
