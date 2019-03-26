@@ -69,6 +69,7 @@ class Simmulator:
 		cpu_utilization = self.getCpuUtil()
 		average_process_in_queue = self.getAvgNumProccessInQueue()
 
+		# Change file name as needed:
 		with open("Output.txt", "w+") as data_file:
 			print("Output is writing to: ", data_file.name)
 
@@ -193,8 +194,6 @@ class Simmulator:
 						self.__is_busy = True
 						del self.readyQ.readyQ[0]
 						count = count + 1
-
-
 
 					else:
 						head_event = self.events.event_Queue[count]  ## Check this When shit breaks
@@ -328,15 +327,13 @@ class Simmulator:
 			pass
 
 	def hrrn(self):
-
 		#  shortest response time first w (waiting time)+s(service time) / (service time)
 		count = 0
 		are_we_done = 0
 		round_robin_demo = -1
+		iterations_through_loop = 0
 
-		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
 		head_event = self.events.event_Queue[count]
-
 
 		for i in range(0, len(self.events.event_Queue)):
 			print(self.events.event_Queue[i]['pId'])
@@ -345,13 +342,21 @@ class Simmulator:
 
 		while are_we_done != self.__end_condition:  # getting next event
 			try:
+				# Will Check if this is the first condition or not.
+				if iterations_through_loop == 0:
+					self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
+					iterations_through_loop += 1
+				else:
+					self.events.event_Queue.sort(key=lambda k: k['ratio'])
+					iterations_through_loop += 1
+
 				head_event = self.events.event_Queue[count]  # Should be at zero
 
 				if self.__clock == True:
 					pass
 				else:
 					pass
-
+					
 				# If Ready Q is empty and the CPU is Idle
 				if not self.readyQ.readyQ and self.__is_busy == False:
 					print("Queue is deadass empty, and there's nothing in it, now we do what is below.")
