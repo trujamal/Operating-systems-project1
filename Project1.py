@@ -56,17 +56,14 @@ class Simmulator:
 
 	def generate_report(self):
 
-		scheduler_value: str
+		# scheduler_value: str
 
 		if scheduler == 1:
 			scheduler_value = "FCFS()"
-			quantum_value = 0.01
 		elif scheduler == 2:
 			scheduler_value = "SRTF()"
-			quantum_value = 0.01
 		elif scheduler == 3:
 			scheduler_value = "HRRN()"
-			quantum_value = 0.01
 		elif scheduler == 4:
 			scheduler_value = "RR()"
 
@@ -90,20 +87,33 @@ class Simmulator:
 			data_file.write(str(total_throughput) + str("\t\t"))
 			data_file.write(str(cpu_utilization) + str("\t\t\t"))
 			data_file.write(str(average_process_in_queue) + str("\t\t\t\t"))
-			data_file.write(str(quantum_value) + str("\n"))
+			if scheduler == 4:
+				data_file.write(str(quantum_value) + str("\n"))
 
 		print("Program Completed")
 		pass
 
 	# metric computation functions @todo implement functions
 	def getAvgTurnaroundTime(self):
-		return self.__sum_arrival_time / self.__end_condition
+		for i, ev in enumerate(self.events.event_Queue):
+			if i == self.count:
+				break
+			self.__sum_arrival_time = self.__sum_arrival_time + ev['arrival_time']
+
+		return round(self.__sum_arrival_time / self.count, 3)
 
 	def getTotalThroughput(self):
-		return 0
+		return round(self.count / self.__clock, 3) 
 
 	def getCpuUtil(self):
-		return 0
+		#busy time / total time
+		busy_time = 0
+		for i, ev in enumerate(self.events.event_Queue):
+			if i == self.count:
+				break
+			busy_time = busy_time + ev['service_time']
+		return round(busy_time / self.__clock, 3)
+
 
 	def getAvgNumProccessInQueue(self):
 		return 0
@@ -113,37 +123,30 @@ class Simmulator:
 	def fcfs(self):
 
 		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
-		count = 0
-		head_event = self.events.event_Queue[count]
+		self.count = 0
 		are_we_done = 0
+		self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
 		while are_we_done != self.__end_condition:  # getting next event
-			self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-
 			try:
-				head_event = self.events.event_Queue[count]
+				head_event = self.events.event_Queue[self.count]
 
 				if (head_event['arrival_time'] >= self.__clock and self.__is_busy == False):  # put in ready que
-					print("PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
-					print("Faster than clock ")
+					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
 
 				elif (self.__is_busy == False):
-					print("PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
-					print('Slower than clock and CPU not busy')
+					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
 
 				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
-					count = count + 1
-					print("PID " + str(head_event['pId']))
+					self.count = self.count + 1
 					self.processDeparture(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
-					print('Farewell, Fernando')
 
-			# print(str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
 			except IndexError:
-				print('index error: ' + str(count) + '\n')
+				print('index error: ' + str(self.count) + '\n')
 				pass
 
 	def srtf(self):  # 195
@@ -417,7 +420,7 @@ class Simmulator:
 
 		# FCFS
 		if scheduler == 1:
-			self.__clock = self.__clock + event['remaining_time']
+			self.__clock = self.__clock + event['service_time']
 
 			event['completion_time'] = self.__clock
 			self.readyQ.removeEvent(event)
@@ -462,7 +465,7 @@ class Event:
 		print("Scheduling Event PID:  " + str(count))  # creates a new event and places it in the event queue based on its time.
 
 		random_service_time = generateExp(1 / average_service_time)
-		random_arrival_time = generateExp(lambda_value) + clock
+		random_arrival_time = generateExp(lambda_value)
 		self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, count + 1))
 
 	# Generate random service time and arrival time
