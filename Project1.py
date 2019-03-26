@@ -146,11 +146,10 @@ class Simmulator:
 		while are_we_done != self.__end_condition:
 			## If Ready Q is empty and the CPU is Idle
 			if (not self.readyQ.readyQ and self.__is_busy == False):
-				## Puts the event in the ready q,
-				self.processArrival(self.readyQ, head_event)  # put in Cpu
 
+				self.readyQ.readyQ.append(copy.deepcopy(head_event))
 				## #TODO increment the count but not sure if correct?
-				count = count + 1
+
 
 				# sets the clock to the head event ( the first event in the event Queue)
 				self.__clock = head_event['arrival_time']
@@ -163,12 +162,13 @@ class Simmulator:
 				# Make sure you remove the event from the ready Q  Process Departure does this I beleive, will clean up later.
 				del self.readyQ.readyQ[0]
 
+				count = count + 1
 				# TODO  need to figure out if this is right for count shit
 				head_event = self.events.event_Queue[count]
 
 				# TODO have fernando tell us if this is right.
 				are_we_done = are_we_done + 1
-
+				continue
 			#  ## Something in Cpu and nothing in Ready Queue
 			if (not self.readyQ.readyQ and self.__is_busy == True):
 				# TODO make sure head event is currect in this scenario
@@ -194,7 +194,8 @@ class Simmulator:
 						self.__is_busy = True
 						del self.readyQ.readyQ[0]
 						count = count + 1
-
+						head_event = self.events.event_Queue[count]
+						continue
 					else:
 						head_event = self.events.event_Queue[count]  ## Check this When shit breaks
 						# Make a copy of whats in the CPU
@@ -217,16 +218,19 @@ class Simmulator:
 							# TODO figure out if this head event is right
 							count = count + 1
 							head_event = self.events.event_Queue[count]
+							continue
 						# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
 						else:
 							del self.readyQ.readyQ[0]
+							count = count + 1
 							head_event = self.events.event_Queue[count]
+							continue
+
 
 			# if ready q has something in it and CPU has something in it.
 			if (self.readyQ.readyQ and self.__is_busy == True):
 
-				# TODO check if head event is what we want to append if head event is right?
-				head_event = self.events.event_Queue[count + 1]
+
 				self.readyQ.readyQ.append(head_event)
 
 				# First time a process comes in, update the clocks to its arrival time,
@@ -255,8 +259,11 @@ class Simmulator:
 					self.__CPU = self.readyQ.readyQ[0]
 					del self.readyQ.readyQ[0]
 					self.__is_busy = True
-					# TODO Check Head event and count bullshit again.
-					head_event = self.events.event_Queue[count - 1]  ## Check this When shit breaks
+
+					count = count + 1
+
+					head_event = self.events.event_Queue[count]
+					continue
 				else:
 					temp = copy.deepcopy(self.__CPU)
 					self.readyQ.readyQ.append(temp)
@@ -273,12 +280,14 @@ class Simmulator:
 						# TODO figure out if this head event is right
 						count = count + 1
 						head_event = self.events.event_Queue[count]
+						continue
 					# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
 					else:
 						del self.readyQ.readyQ[0]
 
 						# TODO Check Count and Head event being right?
 						head_event = self.events.event_Queue[count]
+						continue
 
 			# TODO Delete or reference this block IDGAF
 			########################################################################################################
@@ -324,7 +333,7 @@ class Simmulator:
 
 			#####################################################################################################################
 
-			pass
+
 
 	def hrrn(self):
 		#  shortest response time first w (waiting time)+s(service time) / (service time)
