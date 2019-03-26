@@ -60,10 +60,13 @@ class Simmulator:
 
 		if scheduler == 1:
 			scheduler_value = "FCFS()"
+			quantum_value = 0.01
 		elif scheduler == 2:
 			scheduler_value = "SRTF()"
+			quantum_value = 0.01
 		elif scheduler == 3:
 			scheduler_value = "HRRN()"
+			quantum_value = 0.01
 		elif scheduler == 4:
 			scheduler_value = "RR()"
 
