@@ -172,7 +172,7 @@ class Simmulator:
 			#  ## Something in Cpu and nothing in Ready Queue
 			if (not self.readyQ.readyQ and self.__is_busy == True):
 				# TODO make sure head event is currect in this scenario
-				self.readyQ.readyQ.append(head_event)
+				self.readyQ.readyQ.append(copy.deepcopy(head_event))
 				# First time an event is coming from the event queue and checking the ready q and cpu is busy
 				if (head_event['remaining_time'] == head_event['service_time']):
 					# This would be correct becasue its' the first time
@@ -231,7 +231,7 @@ class Simmulator:
 			if (self.readyQ.readyQ and self.__is_busy == True):
 
 
-				self.readyQ.readyQ.append(head_event)
+				self.readyQ.readyQ.append(copy.deepcopy(head_event))
 
 				# First time a process comes in, update the clocks to its arrival time,
 				# also update the one that's been in the CPU processing time with the new clock data
@@ -284,7 +284,7 @@ class Simmulator:
 					# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
 					else:
 						del self.readyQ.readyQ[0]
-
+						count = count + 1
 						# TODO Check Count and Head event being right?
 						head_event = self.events.event_Queue[count]
 						continue
