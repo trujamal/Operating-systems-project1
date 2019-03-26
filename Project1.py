@@ -305,43 +305,40 @@ class Simmulator:
 	def hrrn(self):
 		#  shortest response time first w (waiting time)+s(service time) / (service time)
 		iterations_through_loop = 0
-
-		are_we_done = 0
-		round_robin_demo = -1
-
+		program_counter = 0
+		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
 		head_event = self.events.event_Queue[iterations_through_loop]
 
 		for i in range(0, len(self.events.event_Queue)):
-			print(self.events.event_Queue[i]['pId'])
-			print(self.events.event_Queue[i]['arrival_time'])
-			print(self.events.event_Queue[i]['service_time'])
+			print("pId " + str(self.events.event_Queue[i]['pId']) + " AT " + str(
+				self.events.event_Queue[i]['arrival_time']) + " ST " + str(
+				self.events.event_Queue[i]['service_time']) + " CT " + str(
+				self.events.event_Queue[i]['completion_time']))
+		print("\n")
 
-		while are_we_done != self.__end_condition:  # getting next event
+		while program_counter != self.__end_condition:  # getting next event
 			try:
 				# Updates with the head pointer
 				head_event = self.events.event_Queue[iterations_through_loop]  # Should be at zero
 
 				# Will Check if this is the first condition or not.
-				if iterations_through_loop == 0:
-					self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
-
-				else:
-					self.events.event_Queue.sort(key=lambda k: k['ratio'])
+				# if iterations_through_loop == 0:
+				# 	self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
+				# else:
+				# 	self.events.event_Queue.sort(key=lambda k: k['ratio'])
 
 				# If Ready Q is empty and the CPU is Idle
 				if not self.readyQ.readyQ and self.__is_busy == False:
 					print("Queue is deadass empty, and there's nothing in it, now we do what is below.")
 					print("JOINING PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)  # Process first test
-					print(str(head_event['ratio']))
-					are_we_done = are_we_done + 1
+					program_counter += 1
 					self.__sum_wait_time = self.__sum_arrival_time + self.__clock
 
-				# Something in Cpu and nothing in Ready Queue
-				if not self.readyQ.readyQ and self.__is_busy == True:
-					print("Processor has something inside it but needs to place info into the ReadyQ")
-
-					pass
+				if head_event['arrival_time'] >= self.__clock and self.__is_busy == False:  # put in ready que
+					print("PID " + str(head_event['pId']))
+					self.processArrival(self.readyQ, head_event)
+					program_counter += 1
 
 				# if Ready q has something in it and CPU has something in it.
 				if self.readyQ.readyQ and self.__is_busy == True:
@@ -349,7 +346,8 @@ class Simmulator:
 					iterations_through_loop += 1
 					print("LEAVING PID " + str(head_event['pId']))
 					self.processDeparture(self.readyQ, head_event)
-					are_we_done = are_we_done + 1
+					program_counter += 1
+
 					# This is to help get the ratio wait time.
 					self.__sum_wait_time = self.__sum_wait_time + self.__clock
 
