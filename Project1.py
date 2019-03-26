@@ -114,7 +114,7 @@ class Simmulator:
 		head_event = self.events.event_Queue[count]
 		are_we_done = 0
 		while are_we_done != self.__end_condition:  # getting next event
-			self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition)
+			self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
 
 			try:
 				head_event = self.events.event_Queue[count]
