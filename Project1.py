@@ -57,10 +57,13 @@ class Simmulator:
 
 		if scheduler == 1:
 			scheduler_value = "FCFS()"
+			quantum_value = 0.01
 		elif scheduler == 2:
 			scheduler_value = "SRTF()"
+			quantum_value = 0.01
 		elif scheduler == 3:
 			scheduler_value = "HRRN()"
+			quantum_value = 0.01
 		elif scheduler == 4:
 			scheduler_value = "RR()"
 
@@ -85,6 +88,8 @@ class Simmulator:
 			data_file.write(str(cpu_utilization) + str("\t\t\t"))
 			data_file.write(str(average_process_in_queue) + str("\t\t\t\t"))
 			data_file.write(str(quantum_value) + str("\n"))
+
+
 
 		print("Program Completed")
 		pass
@@ -338,15 +343,13 @@ class Simmulator:
 	def hrrn(self):
 		#  shortest response time first w (waiting time)+s(service time) / (service time)
 		iterations_through_loop = 0
-
 		program_counter = 0
-
+		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
 		head_event = self.events.event_Queue[iterations_through_loop]
 
 		for i in range(0, len(self.events.event_Queue)):
-			print(self.events.event_Queue[i]['pId'])
-			print(self.events.event_Queue[i]['arrival_time'])
-			print(self.events.event_Queue[i]['service_time'])
+			print("pId " + str(self.events.event_Queue[i]['pId']) + " AT " + str(self.events.event_Queue[i]['arrival_time']) + " ST " + str(self.events.event_Queue[i]['service_time']) + " CT " + str(self.events.event_Queue[i]['completion_time']))
+		print("\n")
 
 		while program_counter != self.__end_condition:  # getting next event
 			try:
@@ -354,10 +357,10 @@ class Simmulator:
 				head_event = self.events.event_Queue[iterations_through_loop]  # Should be at zero
 
 				# Will Check if this is the first condition or not.
-				if iterations_through_loop == 0:
-					self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
-				else:
-					self.events.event_Queue.sort(key=lambda k: k['ratio'])
+				# if iterations_through_loop == 0:
+				# 	self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
+				# else:
+				# 	self.events.event_Queue.sort(key=lambda k: k['ratio'])
 
 				# If Ready Q is empty and the CPU is Idle
 				if not self.readyQ.readyQ and self.__is_busy == False:
@@ -367,6 +370,11 @@ class Simmulator:
 					program_counter += 1
 					self.__sum_wait_time = self.__sum_arrival_time + self.__clock
 
+				if head_event['arrival_time'] >= self.__clock and self.__is_busy == False:  # put in ready que
+					print("PID " + str(head_event['pId']))
+					self.processArrival(self.readyQ, head_event)
+					program_counter += 1
+
 				# if Ready q has something in it and CPU has something in it.
 				if self.readyQ.readyQ and self.__is_busy == True:
 					print("Both queues have something in it")
@@ -374,6 +382,7 @@ class Simmulator:
 					print("LEAVING PID " + str(head_event['pId']))
 					self.processDeparture(self.readyQ, head_event)
 					program_counter += 1
+
 					# This is to help get the ratio wait time.
 					self.__sum_wait_time = self.__sum_wait_time + self.__clock
 
@@ -464,8 +473,11 @@ class Simmulator:
 
 		# HRRN
 		if scheduler == 3:
+			print(event['arrival_time'])
 			event['waiting_time'] = self.__clock - event['arrival_time']
 			event['completion_time'] = self.__clock
+
+			print("There is this many items in the queue: " + str(len(readyQ.readyQ)) + " at time: " + str(self.__clock) + " and also the waiting time is: " + str(event['waiting_time']))
 
 			for event in readyQ.readyQ:
 				response_ratio = (event['waiting_time'] + event['service_time']) / event['service_time']
@@ -568,8 +580,7 @@ class ReadyQueue:
 		# HRRN
 		if scheduler == 3:
 			if Event_type == 'departed':
-				event['completion_time'] = time + event[
-					'service_time']  # Want to implement it to where it does the ratio response here
+				event['completion_time'] = time + event['service_time']
 
 		# RR
 		if scheduler == 4:
