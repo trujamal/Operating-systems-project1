@@ -16,7 +16,7 @@ import copy
 
 class Simmulator:
 	# Simmulator Initialization
-	def __init__(self, scheduler, lambda_value, average_service_time, quantum_value):
+	def __init__(self, scheduler, lambda_value, process_per_service_time, quantum_value):
 		self.__clock = 0
 		self.__sum_service_time = 0
 		self.__sum_wait_time = 0
@@ -27,7 +27,7 @@ class Simmulator:
 		self.__end_condition = 10
 
 		self.events = Event()
-		self.events.createEvents(lambda_value, average_service_time, self.__clock, self.__end_condition)
+		self.events.createEvents(lambda_value, process_per_service_time, self.__clock, self.__end_condition)
 
 		self.readyQ = ReadyQueue()
 
@@ -73,13 +73,13 @@ class Simmulator:
 		with open("Output.txt", "w+") as data_file:
 			print("Output is writing to: ", data_file.name)
 
-			if lambda_value == .06:
+			if process_per_service_time == 1:
 				data_file.write("Scheduler\tLambda\t\tAvgST\tAvgTA\tTotalTP\tCPU Util\tAvg#ProcsInQ \tQuantum\n")
 				data_file.write("------------------------------------------------------------------------------------\n")
 
 			data_file.write(scheduler_value + str("\t\t"))
 			data_file.write(str(lambda_value) + str("\t\t\t"))
-			data_file.write(str(average_service_time) + str("\t"))
+			data_file.write(str(process_per_service_time) + str("\t"))
 			data_file.write(str(average_turn_around_time) + str("\t\t"))
 			data_file.write(str(total_throughput) + str("\t\t"))
 			data_file.write(str(cpu_utilization) + str("\t\t\t"))
@@ -339,8 +339,7 @@ class Simmulator:
 		#  shortest response time first w (waiting time)+s(service time) / (service time)
 		iterations_through_loop = 0
 
-		are_we_done = 0
-		round_robin_demo = -1
+		program_counter = 0
 
 		head_event = self.events.event_Queue[iterations_through_loop]
 
@@ -349,7 +348,7 @@ class Simmulator:
 			print(self.events.event_Queue[i]['arrival_time'])
 			print(self.events.event_Queue[i]['service_time'])
 
-		while are_we_done != self.__end_condition:  # getting next event
+		while program_counter != self.__end_condition:  # getting next event
 			try:
 				# Updates with the head pointer
 				head_event = self.events.event_Queue[iterations_through_loop]  # Should be at zero
@@ -357,7 +356,6 @@ class Simmulator:
 				# Will Check if this is the first condition or not.
 				if iterations_through_loop == 0:
 					self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
-
 				else:
 					self.events.event_Queue.sort(key=lambda k: k['ratio'])
 
@@ -366,15 +364,8 @@ class Simmulator:
 					print("Queue is deadass empty, and there's nothing in it, now we do what is below.")
 					print("JOINING PID " + str(head_event['pId']))
 					self.processArrival(self.readyQ, head_event)  # Process first test
-					print(str(head_event['ratio']))
-					are_we_done = are_we_done + 1
+					program_counter += 1
 					self.__sum_wait_time = self.__sum_arrival_time + self.__clock
-
-				# Something in Cpu and nothing in Ready Queue
-				if not self.readyQ.readyQ and self.__is_busy == True:
-					print("Processor has something inside it but needs to place info into the ReadyQ")
-
-					pass
 
 				# if Ready q has something in it and CPU has something in it.
 				if self.readyQ.readyQ and self.__is_busy == True:
@@ -382,7 +373,7 @@ class Simmulator:
 					iterations_through_loop += 1
 					print("LEAVING PID " + str(head_event['pId']))
 					self.processDeparture(self.readyQ, head_event)
-					are_we_done = are_we_done + 1
+					program_counter += 1
 					# This is to help get the ratio wait time.
 					self.__sum_wait_time = self.__sum_wait_time + self.__clock
 
@@ -434,8 +425,6 @@ class Simmulator:
 				readyQ.scheduleEvent('departed', event, self.__clock)
 			else:
 				readyQ.scheduleEvent('arrived', event, self.__clock)
-				readyQ.sortQ()
-				self.readyQ.sortQ()
 
 		# RR --Temporary Code for the basis run to work
 		if scheduler == 4:
@@ -477,9 +466,18 @@ class Simmulator:
 		if scheduler == 3:
 			event['waiting_time'] = self.__clock - event['arrival_time']
 			event['completion_time'] = self.__clock
+
+			for event in readyQ.readyQ:
+				response_ratio = (event['waiting_time'] + event['service_time']) / event['service_time']
+				print(response_ratio)
+				event['ratio'] = response_ratio
+
 			self.readyQ.removeEvent(event)
 			self.__is_busy = False
 			self.__CPU = None
+
+
+
 
 		# RR @todo
 		if scheduler == 4:
@@ -611,8 +609,8 @@ def generateRandomNumber():
 if __name__ == "__main__":
 	if len(sys.argv) >= 4:
 		scheduler = int(sys.argv[1])
-		lambda_value = float(sys.argv[2])
-		average_service_time = float(sys.argv[3])
+		process_per_service_time = float(sys.argv[2])
+		lambda_value = float(sys.argv[3])
 		if len(sys.argv) == 5:
 			quantum_value = int(sys.argv[4])
 		else:
@@ -629,7 +627,7 @@ if __name__ == "__main__":
 		except IndexError:
 			pass
 
-	sim = Simmulator(scheduler, lambda_value, average_service_time, quantum_value)
+	sim = Simmulator(scheduler, lambda_value, process_per_service_time, quantum_value)
 	sim.run()
 	sim.generate_report()
 
