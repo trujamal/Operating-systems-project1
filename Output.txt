@@ -1,3 +1,1 @@
-Scheduler	Lambda		AvgST	AvgTA	TotalTP	CPU Util	Avg#ProcsInQ 	Quantum
-------------------------------------------------------------------------------------
-HRRN()		10.0			0.06	0.0		0		0			0				None
+SRTF()		5.0			0.06	0.0		0		0			0				None

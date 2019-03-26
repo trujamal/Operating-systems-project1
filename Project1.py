@@ -73,7 +73,7 @@ class Simmulator:
 		with open("Output.txt", "w+") as data_file:
 			print("Output is writing to: ", data_file.name)
 
-			if lambda_value == 10:
+			if lambda_value == .06:
 				data_file.write("Scheduler\tLambda\t\tAvgST\tAvgTA\tTotalTP\tCPU Util\tAvg#ProcsInQ \tQuantum\n")
 				data_file.write("------------------------------------------------------------------------------------\n")
 
@@ -143,7 +143,7 @@ class Simmulator:
 		count = 0
 		head_event = self.events.event_Queue[0]
 		are_we_done = 0
-		while are_we_done != self.__end_condition:
+		while count != self.__end_condition:
 			## If Ready Q is empty and the CPU is Idle
 			if (not self.readyQ.readyQ and self.__is_busy == False):
 
@@ -496,7 +496,7 @@ class Event:
 	def createEvents(self, lambda_value, average_service_time, clock, end_condition):
 		print("Scheduling Event Beings")  # creates a new event and places it in the event queue based on its time.
 
-		for process_count in range(end_condition):
+		for process_count in range(end_condition+1):
 			random_service_time = generateExp(1 / average_service_time)
 			random_arrival_time = generateExp(lambda_value)
 			self.event_Queue.append(
