@@ -81,14 +81,16 @@ class Simmulator:
 				data_file.write("------------------------------------------------------------------------------------\n")
 
 			data_file.write(scheduler_value + str("\t\t"))
-			data_file.write(str(lambda_value) + str("\t\t\t"))
-			data_file.write(str(average_service_time) + str("\t"))
-			data_file.write(str(average_turn_around_time) + str("\t\t"))
-			data_file.write(str(total_throughput) + str("\t\t"))
+			data_file.write(str(lambda_value) + str("\t\t"))
+			data_file.write(str(average_service_time) + str("\t\t"))
+			data_file.write(str(average_turn_around_time) + str("\t"))
+			data_file.write(str(total_throughput) + str("\t"))
 			data_file.write(str(cpu_utilization) + str("\t\t\t"))
 			data_file.write(str(average_process_in_queue) + str("\t\t\t\t"))
 			if scheduler == 4:
 				data_file.write(str(quantum_value) + str("\n"))
+			else:
+				data_file.write("0")
 
 		print("Program Completed")
 		pass
@@ -314,8 +316,6 @@ class Simmulator:
 		while are_we_done != self.__end_condition:  # getting next event
 			try:
 				head_event = self.events.event_Queue[self.count]
-				print(self.readyQ)
-
 				if (head_event['arrival_time'] >= self.__clock and self.__is_busy == False):  # put in ready que
 					self.processArrival(self.readyQ, head_event)
 					are_we_done = are_we_done + 1
