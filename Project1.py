@@ -81,14 +81,16 @@ class Simmulator:
 				data_file.write("------------------------------------------------------------------------------------\n")
 
 			data_file.write(scheduler_value + str("\t\t"))
-			data_file.write(str(lambda_value) + str("\t\t\t"))
-			data_file.write(str(average_service_time) + str("\t"))
-			data_file.write(str(average_turn_around_time) + str("\t\t"))
-			data_file.write(str(total_throughput) + str("\t\t"))
+			data_file.write(str(lambda_value) + str("\t\t"))
+			data_file.write(str(average_service_time) + str("\t\t"))
+			data_file.write(str(average_turn_around_time) + str("\t"))
+			data_file.write(str(total_throughput) + str("\t"))
 			data_file.write(str(cpu_utilization) + str("\t\t\t"))
 			data_file.write(str(average_process_in_queue) + str("\t\t\t\t"))
 			if scheduler == 4:
 				data_file.write(str(quantum_value) + str("\n"))
+			else:
+				data_file.write("0")
 
 		print("Program Completed")
 		pass
@@ -359,8 +361,6 @@ class Simmulator:
 				readyQ.scheduleEvent('departed', event, self.__clock)
 			else:
 				readyQ.scheduleEvent('arrived', event, self.__clock)
-				readyQ.sortQ()
-				self.readyQ.sortQ()
 
 		# RR --Temporary Code for the basis run to work
 		if scheduler == 4:
@@ -384,7 +384,7 @@ class Simmulator:
 			self.__is_busy = False #clear the cpu
 			self.__CPU = None
 
-		# SRTF @todo
+		# SRTF
 		if scheduler == 2:
 			if (event['remaining_time'] == event['service_time']):  ## First time it a process is processed
 				event['remaining_time'] = event['remaining_time'] - event['cpu_arrival_time']
@@ -400,8 +400,11 @@ class Simmulator:
 
 		# HRRN
 		if scheduler == 3:
-			event['waiting_time'] = self.__clock - event['arrival_time']
+			service_time_value = event['service_time']
+			waiting_time_value = self.__clock - event['arrival_time']
+			ratio_value = (waiting_time_value + service_time_value) / service_time_value
 			event['completion_time'] = self.__clock
+			event['ratio'] = ratio_value
 			self.readyQ.removeEvent(event)
 			self.__is_busy = False
 			self.__CPU = None
@@ -478,7 +481,8 @@ class ReadyQueue:
 		elif scheduler == 2:
 			self.readyQ.sort(key=lambda k: k['remaining_time'])
 		elif scheduler == 3:
-			self.readyQ.sort(key=lambda k: k['ratio'])
+			self.readyQ.sort(key=lambda k: k['ratio'], reverse=True)
+
 
 	def scheduleEvent(self, Event_type, event, time):
 
