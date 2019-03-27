@@ -23,16 +23,16 @@ class Simmulator:
 		self.__sum_arrival_time = 0
 		self.__is_busy = False
 		self.__scheduler = scheduler
-		self.__quantum_value = quantum_value
-		self.__end_condition = 10
+		self.__end_condition = 5
 
 		self.__lambda_val = lambda_value
 		self.__average_service_time = average_service_time
+		self.__quantum_value = quantum_value
 
 		self.events = Event()
-		# self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, 0)
-
 		self.readyQ = ReadyQueue()
+		self.count = 0
+
 
 		self.__CPU = None
 
@@ -96,11 +96,11 @@ class Simmulator:
 	# metric computation functions @todo implement functions
 	def getAvgTurnaroundTime(self):
 		for i, ev in enumerate(self.events.event_Queue):
-			if i == self.count:
+			if i == self.__end_condition:
 				break
 			self.__sum_arrival_time = self.__sum_arrival_time + ev['arrival_time']
 
-		return round(self.__sum_arrival_time / self.count, 3)
+		return round(self.__sum_arrival_time / self.__end_condition, 3)
 
 	def getTotalThroughput(self):
 		return round(self.count / self.__clock, 3) 
@@ -116,7 +116,8 @@ class Simmulator:
 
 
 	def getAvgNumProccessInQueue(self):
-		return 0
+		
+		return #self.
 
 	#  Scheduling Algorithms
 
@@ -126,7 +127,7 @@ class Simmulator:
 		self.count = 0
 		are_we_done = 0
 		self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
-		while are_we_done != self.__end_condition:  # getting next event
+		while self.count != self.__end_condition:  # getting next event
 			try:
 				head_event = self.events.event_Queue[self.count]
 
@@ -137,7 +138,7 @@ class Simmulator:
 
 				elif (self.__is_busy == False):
 					self.processArrival(self.readyQ, head_event)
-					are_we_done = are_we_done + 1
+					# are_we_done = are_we_done + 1
 					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
 
 				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
@@ -151,14 +152,12 @@ class Simmulator:
 
 	def srtf(self):  # 195
 		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
-		count = 0
-		self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-		head_event = self.events.event_Queue[count]
-		are_we_done = 0
-		while count != self.__end_condition:
+		self.count = 0
+		self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, self.count)
+		head_event = self.events.event_Queue[self.count]
+		while self.count != self.__end_condition:
 			## If Ready Q is empty and the CPU is Idle
 			if (not self.readyQ.readyQ and self.__is_busy == False):
-
 				self.readyQ.readyQ.append(copy.deepcopy(head_event))
 		
 				# sets the clock to the head event ( the first event in the event Queue)
@@ -166,22 +165,21 @@ class Simmulator:
 				# put the first event from the event queue, ( head event) in the cpu and make it busy.
 				self.__CPU = copy.deepcopy(head_event)
 				self.__is_busy = True
-
 				# The cpu arrival time of the head event will meow be equal to the clock beacuse it was first event.
 				self.__CPU['cpu_arrival_time'] = self.__clock
 				# Make sure you remove the event from the ready Q  Process Departure does this I beleive, will clean up later.
 				del self.readyQ.readyQ[0]
 
-				count = count + 1
-				self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-				head_event = self.events.event_Queue[count]
-
+				self.count = self.count + 1
+				self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, self.count)
+				head_event = self.events.event_Queue[self.count]
 				continue
+
 			#  ## Something in Cpu and nothing in Ready Queue
 			if (not self.readyQ.readyQ and self.__is_busy == True):
-				self.readyQ.readyQ.append(head_event)
+				self.appendToReadyQ(head_event)
 				# First time an event is coming from the event queue and checking the ready q and cpu is busy
-				if (head_event['remaining_time'] == head_event['service_time']):
+				if (self.readyQ.readyQ[0]['remaining_time'] == self.readyQ.readyQ[0]['service_time']):
 					# This would be correct becasue its' the first time
 					self.__clock = head_event['arrival_time']
 
@@ -192,61 +190,44 @@ class Simmulator:
 					self.__CPU['remaining_time'] = self.__CPU['remaining_time'] - self.__CPU['cpu_processing_time']
 
 					if (self.__CPU['remaining_time'] <= 0):
-						self.__CPU['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU[
-							'cpu_arrival_time']
-						self.__CPU = None
-						self.__is_busy = False
-						self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
-						self.__is_busy = True
+						self.__CPU['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU['cpu_arrival_time']
+						self.changeCPUprocess()
 						del self.readyQ.readyQ[0]
-						count = count + 1
-						self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-						head_event = self.events.event_Queue[count]
+						self.count = self.count + 1
+						self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, self.count)
+						head_event = self.events.event_Queue[self.count]
 						continue
 					else:
-						head_event = self.events.event_Queue[count]  ## Check this When shit breaks
-						# Make a copy of whats in the CPU
-						temp = copy.deepcopy(self.__CPU)
-						# Add that to the Ready Queue
-						self.readyQ.readyQ.append(temp)
-						# Clear the CPU and set the busy to fasle.
-
-						# Sort the ready queue with both events in it.
-						self.readyQ.sortQ()
+						head_event = self.events.event_Queue[self.count]  ## Check this When shit breaks
+						self.appendToReadyQ(self.__CPU)
 						# The event that is first should be the shortest event and we set that in the CPU
 						# If the CPU did change processes. Put the new one into the CPU
 						if (self.__CPU != self.readyQ.readyQ[0]):
-							self.__CPU = None
-							self.__is_busy = False
-							self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
-							self.__is_busy = True
+							self.changeCPUprocess()
 							self.__CPU['cpu_arrival_time'] = self.__clock
 							del self.readyQ.readyQ[0]
 							# TODO figure out if this head event is right
-							count = count + 1
-							self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-							head_event = self.events.event_Queue[count]
+							self.count = self.count + 1
+							self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, self.count)
+							head_event = self.events.event_Queue[self.count]
 							continue
 						# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
 						else:
 							del self.readyQ.readyQ[0]
-							count = count + 1
-							self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-							head_event = self.events.event_Queue[count]
+							self.count = self.count + 1
+							self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, self.count)
+							head_event = self.events.event_Queue[self.count]
 							continue
-
 
 			# if ready q has something in it and CPU has something in it.
 			if (self.readyQ.readyQ and self.__is_busy == True):
-
-
-				self.readyQ.readyQ.append(head_event)
+				self.appendToReadyQ(head_event)
 
 				# First time a process comes in, update the clocks to its arrival time,
 				# also update the one that's been in the CPU processing time with the new clock data
 				# The reamining time ius what is left./
-				if (head_event['remaining_time'] == head_event['service_time']):  ## First time being processed
-					self.__clock = head_event['arrival_time']
+				if (self.readyQ.readyQ[0]['remaining_time'] == self.readyQ.readyQ[0]['service_time']):  ## First time being processed
+					self.__clock = self.readyQ.readyQ[0]['arrival_time']
 					self.__CPU['cpu_processing_time'] = self.__clock - self.__CPU['cpu_arrival_time']
 					self.__CPU['remaining_time'] = self.__CPU['remaining_time'] - self.__CPU['cpu_processing_time']
 
@@ -263,41 +244,42 @@ class Simmulator:
 				if (self.__CPU['remaining_time'] <= 0):
 					self.__CPU['completion_time'] = self.__CPU['cpu_processing_time'] - self.__CPU['cpu_arrival_time']
 					self.readyQ.sortQ()
-					self.__CPU = None
-					self.__is_busy = False
-					self.__CPU = self.readyQ.readyQ[0]
+					self.changeCPUprocess()
 					del self.readyQ.readyQ[0]
-					self.__is_busy = True
 
-					count = count + 1
-					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-					head_event = self.events.event_Queue[count]
+					self.count = self.count + 1
+					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, self.count)
+					head_event = self.events.event_Queue[self.count]
 					continue
 				else:
-					temp = copy.deepcopy(self.__CPU)
-					self.readyQ.readyQ.append(temp)
-					self.readyQ.sortQ()
+					self.appendToReadyQ(self.__CPU)
 					# The event that is first should be the shortest event and we set that in the CPU
 					# If the CPU did change processes. Put the new one into the CPU
 					if (self.__CPU != self.readyQ.readyQ[0]):
-						self.__CPU = None
-						self.__is_busy = False
-						self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
-						self.__is_busy = True
+						self.changeCPUprocess()
 						self.__CPU['cpu_arrival_time'] = self.__clock
 						del self.readyQ.readyQ[0]
 
-						count = count + 1
-						self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-						head_event = self.events.event_Queue[count]
+						self.count = self.count + 1
+						self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, self.count)
+						head_event = self.events.event_Queue[self.count]
 						continue
 					# If not switching processes just keep the new process in ready queue and keep the CPU going like a champ.
 					else:
 						del self.readyQ.readyQ[0]
-
-						self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, count)
-						head_event = self.events.event_Queue[count]
+						self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, self.count)
+						head_event = self.events.event_Queue[self.count]
 						continue
+
+	def changeCPUprocess(self):
+		self.__CPU = None
+		self.__is_busy = False
+		self.__CPU = copy.deepcopy(self.readyQ.readyQ[0])
+		self.__is_busy = True
+
+	def appendToReadyQ(self, event):
+		self.readyQ.readyQ.append(copy.deepcopy(event))
+		self.readyQ.sortQ()
 
 
 
@@ -307,64 +289,39 @@ class Simmulator:
 
 	def hrrn(self):
 		#  shortest response time first w (waiting time)+s(service time) / (service time)
-		iterations_through_loop = 0
-		program_counter = 0
 		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
-		head_event = self.events.event_Queue[iterations_through_loop]
-
-		for i in range(0, len(self.events.event_Queue)):
-			print("pId " + str(self.events.event_Queue[i]['pId']) + " AT " + str(
-				self.events.event_Queue[i]['arrival_time']) + " ST " + str(
-				self.events.event_Queue[i]['service_time']) + " CT " + str(
-				self.events.event_Queue[i]['completion_time']))
-		print("\n")
-
-		while program_counter != self.__end_condition:  # getting next event
+		self.count = 0
+		are_we_done = 0
+		self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
+		while are_we_done != self.__end_condition:  # getting next event
 			try:
-				# Updates with the head pointer
-				head_event = self.events.event_Queue[iterations_through_loop]  # Should be at zero
-
-				# Will Check if this is the first condition or not.
-				# if iterations_through_loop == 0:
-				# 	self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
-				# else:
-				# 	self.events.event_Queue.sort(key=lambda k: k['ratio'])
-
-				# If Ready Q is empty and the CPU is Idle
-				if not self.readyQ.readyQ and self.__is_busy == False:
-					print("Queue is deadass empty, and there's nothing in it, now we do what is below.")
-					print("JOINING PID " + str(head_event['pId']))
-					self.processArrival(self.readyQ, head_event)  # Process first test
-					program_counter += 1
-					self.__sum_wait_time = self.__sum_arrival_time + self.__clock
-
-				if head_event['arrival_time'] >= self.__clock and self.__is_busy == False:  # put in ready que
-					print("PID " + str(head_event['pId']))
+				head_event = self.events.event_Queue[self.count]
+				if (head_event['arrival_time'] >= self.__clock and self.__is_busy == False):  # put in ready que
 					self.processArrival(self.readyQ, head_event)
-					program_counter += 1
+					are_we_done = are_we_done + 1
+					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
 
-				# if Ready q has something in it and CPU has something in it.
-				if self.readyQ.readyQ and self.__is_busy == True:
-					print("Both queues have something in it")
-					iterations_through_loop += 1
-					print("LEAVING PID " + str(head_event['pId']))
+				elif (self.__is_busy == False):
+					self.processArrival(self.readyQ, head_event)
+					are_we_done = are_we_done + 1
+					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
+
+				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
+					self.count = self.count + 1
 					self.processDeparture(self.readyQ, head_event)
-					program_counter += 1
+					are_we_done = are_we_done + 1
+					self.readyQ.sortQ()
 
-					# This is to help get the ratio wait time.
-					self.__sum_wait_time = self.__sum_wait_time + self.__clock
-
-				print(str(self.__clock) + (str(self.readyQ.readyQ[0])) + '\n')
 			except IndexError:
-				print('index error: ' + str(iterations_through_loop) + '\n')
-			pass
+				print('index error: ' + str(self.count) + '\n')
+				pass
 
 	def rr(self):
 		self.events.event_Queue.sort(key=lambda k: k['remaining_time'])
-		count = 0
-		head_event = self.events.event_Queue[count]
+		self.count = 0
+		head_event = self.events.event_Queue[self.count]
 		are_we_done = 0
-		while count != self.__end_condition:
+		while self.count != self.__end_condition:
 			pass
 
 	def processArrival(self, readyQ, event):
@@ -414,8 +371,6 @@ class Simmulator:
 			else:
 				readyQ.scheduleEvent('arrived', event, self.__clock)
 
-	# readyQ.scheduleEvent('arrival', event, time)  # used to keep 1 arrival coming into the ready queue
-
 	def processDeparture(self, readyQ, event):
 
 		# FCFS
@@ -423,8 +378,10 @@ class Simmulator:
 			self.__clock = self.__clock + event['service_time']
 
 			event['completion_time'] = self.__clock
+			self.events.event_Queue[self.count]['completion_time'] = self.__clock
 			self.readyQ.removeEvent(event)
-			self.__is_busy = False
+			
+			self.__is_busy = False #clear the cpu
 			self.__CPU = None
 
 		# SRTF @todo
@@ -452,6 +409,7 @@ class Simmulator:
 		# RR @todo
 		if scheduler == 4:
 			pass
+	
 
 
 #####################################################################################
@@ -466,12 +424,23 @@ class Event:
 
 		random_service_time = generateExp(1 / average_service_time)
 		random_arrival_time = generateExp(lambda_value)
-		self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, count + 1))
+		# self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, count + 1))
 
-	# Generate random service time and arrival time
-	# random_service_time = generateExp(1 / average_service_time)
-	# random_arrival_time = generateExp(lambda_value)
-	# self.__sum_arrival_time = self.__sum_arrival_time + random_service_time
+		#hard coding in events for debugging
+		if count >= 5:
+			self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, count + 1))
+		elif count == 0:
+			self.event_Queue.append(self.eventArrival(3, 0, 'A'))
+		elif count == 1:
+			self.event_Queue.append(self.eventArrival(4, 1, 'B'))
+		elif count == 2:
+			self.event_Queue.append(self.eventArrival(3, 3, 'C'))
+		elif count == 3:
+			self.event_Queue.append(self.eventArrival(2, 6, 'D'))
+		elif count == 4:
+			self.event_Queue.append(self.eventArrival(5, 12, 'E'))
+
+				
 
 	def eventArrival(self, service_time, arrival_time, process_count):
 		return {
@@ -513,11 +482,6 @@ class ReadyQueue:
 
 	def scheduleEvent(self, Event_type, event, time):
 
-		# Generate random service time and arrival time
-		# random_service_time = generateExp(1 / average_service_time)
-		# random_arrival_time = generateExp(lambda_value)
-		# self.__sum_arrival_time = self.__sum_arrival_time + random_service_time
-
 		event['process_status'] = Event_type
 
 		# FCFS
@@ -529,9 +493,6 @@ class ReadyQueue:
 		if scheduler == 2:
 			if Event_type == 'departed':
 				pass
-			# event['remaining_time'] = event['remaining_time'] - time
-			# event['remaining_time'] = event['service_time'] - time
-			# brain = on()
 
 		# HRRN
 		if scheduler == 3:
