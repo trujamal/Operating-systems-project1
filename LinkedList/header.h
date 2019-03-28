@@ -1,15 +1,16 @@
-/****************************************************
-*   course:       CS4328 
-*   project:      Project 1 - Scheduler Simulator 
-*   programmer:   Stacy Bridges
-*   date:         11/04/2015  
-*   description:  for description, see "main.cpp"
-****************************************************/
+ /* main.cpp
+ In this project, we are going to build a discrete-time event
+ simulator for a number of CPU schedulers on a single CPU system.
+ The goal of this project is to compare and assess the impact of
+ different schedulers on different performance metrics, and across multiple workloads.
+ @authors: John Daloni, Jamal Rasool, Kristof York, Fernando Valdes, Elliot Esponda
+ @date: March 21st, 2019
+*/ 
+
 #ifndef HEADER_H
 #define HEADER_H
 
-/////////////////////////////////////////////////////
-// utility functions
+// Creation of initialization functions.
 void parseArgs(char *[]);  
 void init();
 void run_sim();
@@ -17,15 +18,13 @@ float urand();
 float genExp(float);
 void generate_report();
 
-/////////////////////////////////////////////////////
-// scheduler functions
-void FCFS();   // first come first serve 
-void SRTF();   // shortest remaining time next  
-void HRRN();   // highest response ratio next
-void RR();     // round robin 
+// Simmulator Functions
+void FCFS();   
+void SRTF();   
+void HRRN();   
+void RR();     
 
-/////////////////////////////////////////////////////
-// helper functions
+// Helper functions
 void scheduleArrival();
 void scheduleDeparture();
 void scheduleAllocation();
@@ -47,12 +46,10 @@ void popEventQHead();
 bool isPreemptive();
 float cpuEstFinishTime();
 
-/////////////////////////////////////////////////////
-// metric computation functions
+// Report helper functinos
 float getAvgTurnaroundTime();
 float getTotalThroughput();
 float getCpuUtil();
 float getAvgNumProcInQ();
-
 
 #endif
