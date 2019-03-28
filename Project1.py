@@ -23,7 +23,7 @@ class Simmulator:
 		self.__sum_arrival_time = 0
 		self.__is_busy = False
 		self.__scheduler = scheduler
-		self.__end_condition = 5
+		self.__end_condition = 10000
 
 		self.__lambda_val = lambda_value
 		self.__average_service_time = average_service_time
@@ -76,9 +76,9 @@ class Simmulator:
 		with open("Output.txt", "w+") as data_file:
 			print("Output is writing to: ", data_file.name)
 
-			if lambda_value == 10:
-				data_file.write("Scheduler\tLambda\t\tAvgST\tAvgTA\tTotalTP\tCPU Util\tAvg#ProcsInQ \tQuantum\n")
-				data_file.write("------------------------------------------------------------------------------------\n")
+			# if lambda_value == 10:
+			data_file.write("Scheduler\tLambda\t\tAvgST\tAvgTA\tTotalTP\tCPU Util\tAvg#ProcsInQ \tQuantum\n")
+			data_file.write("------------------------------------------------------------------------------------\n")
 
 			data_file.write(scheduler_value + str("\t\t"))
 			data_file.write(str(lambda_value) + str("\t\t"))
@@ -97,12 +97,13 @@ class Simmulator:
 
 	# metric computation functions @todo implement functions
 	def getAvgTurnaroundTime(self):
-		for i, ev in enumerate(self.events.event_Queue):
-			if i == self.__end_condition:
-				break
-			self.__sum_arrival_time = self.__sum_arrival_time + ev['arrival_time']
+		ta = 0
+		for ev in self.events.event_Queue:
+			ta = ta + ev['arrival_time'] - ev['completion_time'] 
+			# print (ev['completion_time'])		
+		return round(ta / self.__end_condition, 3)
 
-		return round(self.__sum_arrival_time / self.__end_condition, 3)
+
 
 	def getTotalThroughput(self):
 		return round(self.count / self.__clock, 3) 
@@ -110,45 +111,84 @@ class Simmulator:
 	def getCpuUtil(self):
 		#busy time / total time
 		busy_time = 0
-		for i, ev in enumerate(self.events.event_Queue):
-			if i == self.count:
-				break
+		for ev in self.events.event_Queue:
 			busy_time = busy_time + ev['service_time']
 		return round(busy_time / self.__clock, 3)
 
 
 	def getAvgNumProccessInQueue(self):
-		
-		return #self.
+		return round(self.numInQueue / self.count)
 
 	#  Scheduling Algorithms
 
 	def fcfs(self):
-
+		self.numInQueue = 0
 		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
 		self.count = 0
 		are_we_done = 0
 		self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
-		while self.count != self.__end_condition:  # getting next event
+		while are_we_done != self.__end_condition:  # getting next event
 			try:
 				head_event = self.events.event_Queue[self.count]
 
+				#if cpu is not busy
 				if (self.__is_busy == False):
-					if (head_event['arrival_time'] >= self.__clock):  # put in ready que
-						are_we_done = are_we_done + 1
-
-					self.processArrival(self.readyQ, head_event)
 					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
-
+				
+					if (len(self.readyQ.readyQ)):
+						self.schedArrival(self.readyQ, head_event)
+			
+				#cpu not busy
 				else:
-					if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
-						self.count = self.count + 1
-						self.processDeparture(self.readyQ, self.readyQ.readyQ[0])
-						are_we_done = are_we_done + 1
+					self.schedDeparture(self.readyQ, self.readyQ.readyQ[0])
+
+				#anycase - handle next event
+				if head_event[type] == 1: #arrival
+					self.processArrival(self.readyQ, head_event)
+				elif: head_event[type] == 2: #departure
+					self.processDeparture(self.readyQ, self.readyQ.readyQ[0])
+					are_we_done = are_we_done + 1
+				elif: head_event[type] == 3: #allocation
+					handleallocation()
+				
+
+				# 	if (head_event['arrival_time'] >= self.__clock):  # put in ready que
+				# 		are_we_done = are_we_done + 1						
+
+				# else:
+				# 	if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
+				# 		self.count = self.count + 1
+				# 		self.processDeparture(self.readyQ, self.readyQ.readyQ[0])
+				# 		# are_we_done = are_we_done + 1 
+
+				# self.numInQueue = self.numInQueue + len(self.readyQ.readyQ)
 
 			except IndexError:
 				print('index error: ' + str(self.count) + '\n')
 				pass
+
+		# while are_we_done != self.__end_condition:  # getting next event
+		# 	try:
+		# 		head_event = self.events.event_Queue[self.count]
+
+		# 		if (self.__is_busy == False):
+		# 			if (head_event['arrival_time'] >= self.__clock):  # put in ready que
+		# 				are_we_done = are_we_done + 1						
+		# 			self.processArrival(self.readyQ, head_event)
+		# 			self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
+
+		# 		else:
+		# 			if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
+		# 				self.count = self.count + 1
+		# 				self.processDeparture(self.readyQ, self.readyQ.readyQ[0])
+		# 				# are_we_done = are_we_done + 1 
+
+		# 		self.numInQueue = self.numInQueue + len(self.readyQ.readyQ)
+
+		# 	except IndexError:
+		# 		print('index error: ' + str(self.count) + '\n')
+		# 		pass
+
 
 	def srtf(self):  # 195
 		self.events.event_Queue.sort(key=lambda k: k['arrival_time'])
@@ -334,7 +374,7 @@ class Simmulator:
 				self.__is_busy = True
 				self.__CPU = copy.deepcopy(event)
 				event['process_status'] = 'departed'
-				event['completion_time'] = self.__clock + event['service_time']
+				# event['completion_time'] = self.__clock + event['service_time']
 			else:
 				event['process_status'] = 'arrived'
 
@@ -444,7 +484,7 @@ class Event:
 		# elif count == 3:
 		# 	self.event_Queue.append(self.eventArrival(2, 6, 'D'))
 		# elif count == 4:
-		# 	self.event_Queue.append(self.eventArrival(5, 12, 'E'))
+		# 	self.event_Queue.append(self.eventArrival(5, 11, 'E'))
 
 				
 

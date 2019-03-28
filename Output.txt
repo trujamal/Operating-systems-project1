@@ -1,1 +1,3 @@
-FCFS()		30.0		0.06		0.095	15.891	0.815			None				0
+Scheduler	Lambda		AvgST	AvgTA	TotalTP	CPU Util	Avg#ProcsInQ 	Quantum
+------------------------------------------------------------------------------------
+FCFS()		10.0		0.06		0.259	8.132	0.495			1				0
