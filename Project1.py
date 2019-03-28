@@ -133,20 +133,18 @@ class Simmulator:
 			try:
 				head_event = self.events.event_Queue[self.count]
 
-				if (head_event['arrival_time'] >= self.__clock and self.__is_busy == False):  # put in ready que
+				if (self.__is_busy == False):
+					if (head_event['arrival_time'] >= self.__clock):  # put in ready que
+						are_we_done = are_we_done + 1
+
 					self.processArrival(self.readyQ, head_event)
-					are_we_done = are_we_done + 1
 					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
 
-				elif (self.__is_busy == False):
-					self.processArrival(self.readyQ, head_event)
-					# are_we_done = are_we_done + 1
-					self.events.createEvents(self.__lambda_val, self.__average_service_time, self.__clock, self.__end_condition, are_we_done)
-
-				elif (self.readyQ.readyQ[0]['process_status'] == 'departed' and self.__is_busy == True):
-					self.count = self.count + 1
-					self.processDeparture(self.readyQ, head_event)
-					are_we_done = are_we_done + 1
+				else:
+					if (self.readyQ.readyQ[0]['process_status'] == 'departed'):
+						self.count = self.count + 1
+						self.processDeparture(self.readyQ, self.readyQ.readyQ[0])
+						are_we_done = are_we_done + 1
 
 			except IndexError:
 				print('index error: ' + str(self.count) + '\n')
@@ -327,16 +325,21 @@ class Simmulator:
 			pass
 
 	def processArrival(self, readyQ, event):
-		self.__clock = event['arrival_time']  # setting the clock
-
+		
+		if self.__clock < event['arrival_time']:
+			self.__clock = event['arrival_time']  # setting the clock
 		# FCFS
 		if scheduler == 1:
 			if not self.__is_busy:
 				self.__is_busy = True
 				self.__CPU = copy.deepcopy(event)
-				readyQ.scheduleEvent('departed', event, self.__clock)
+				event['process_status'] = 'departed'
+				event['completion_time'] = self.__clock + event['service_time']
 			else:
-				readyQ.scheduleEvent('arrived', event, self.__clock)
+				event['process_status'] = 'arrived'
+
+			self.readyQ.readyQ.append(copy.deepcopy(event))
+			self.readyQ.sortQ()
 
 		# SRTF --Temporary Code for the basis run to work
 		if scheduler == 2:
@@ -427,21 +430,21 @@ class Event:
 
 		random_service_time = generateExp(1 / average_service_time)
 		random_arrival_time = generateExp(lambda_value)
-		# self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, count + 1))
+		self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, count + 1))
 
 		#hard coding in events for debugging
-		if count >= 5:
-			self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, count + 1))
-		elif count == 0:
-			self.event_Queue.append(self.eventArrival(3, 0, 'A'))
-		elif count == 1:
-			self.event_Queue.append(self.eventArrival(4, 1, 'B'))
-		elif count == 2:
-			self.event_Queue.append(self.eventArrival(3, 3, 'C'))
-		elif count == 3:
-			self.event_Queue.append(self.eventArrival(2, 6, 'D'))
-		elif count == 4:
-			self.event_Queue.append(self.eventArrival(5, 12, 'E'))
+		# if count >= 5:
+		# 	self.event_Queue.append(self.eventArrival(random_service_time, clock + random_arrival_time, count + 1))
+		# elif count == 0:
+		# 	self.event_Queue.append(self.eventArrival(3, 0, 'A'))
+		# elif count == 1:
+		# 	self.event_Queue.append(self.eventArrival(4, 1, 'B'))
+		# elif count == 2:
+		# 	self.event_Queue.append(self.eventArrival(3, 3, 'C'))
+		# elif count == 3:
+		# 	self.event_Queue.append(self.eventArrival(2, 6, 'D'))
+		# elif count == 4:
+		# 	self.event_Queue.append(self.eventArrival(5, 12, 'E'))
 
 				
 
@@ -453,10 +456,7 @@ class Event:
 			'remaining_time': service_time,
 			'cpu_processing_time': 0,
 			'completion_time': 0,
-			'found': False,
 			'waiting_time': 0,
-			'preemptive_time': None,
-			'float_initial_wait': None,
 			'process_status': 'arrived',
 			'ratio': 0,
 			'cpu_arrival_time': 0
@@ -492,6 +492,7 @@ class ReadyQueue:
 		if scheduler == 1:
 			if Event_type == 'departed':
 				event['completion_time'] = time + event['service_time']
+
 
 		# SRTF
 		if scheduler == 2:

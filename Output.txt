@@ -1,3 +1,1 @@
-Scheduler	Lambda		AvgST	AvgTA	TotalTP	CPU Util	Avg#ProcsInQ 	Quantum
-------------------------------------------------------------------------------------
-HRRN()		10.0		3.0		0.149	17.996	419.754			0				0
+FCFS()		30.0		0.06		0.095	15.891	0.815			None				0
