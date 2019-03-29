@@ -47,9 +47,10 @@ int stopCond = 10000;            // # of departures
 float mu = 0.0;                        // 1/avgTs
 float quantumClock;              // for RR
 eventQNode* eHead;               // head of event queue
-procListNode* pHead;             // head of oprocess list
+procListNode* pHead;             // head of process list
 readyQNode* rHead;               // head of ready queue
 cpuNode* cpuHead;                // the cpu node (there's only one)
+int countSomething = 0;
 
 // helper functions
 void insertIntoEventQ(eventQNode*);
@@ -76,8 +77,8 @@ void init() {
    // create the cpu node
    cpuHead = new cpuNode;
    cpuHead->clock = 0.0;
-   cpuHead->cpuIsBusy = 0;   // cpu flag: 0=false=idle, 1=true=busy
-   cpuHead->pLink = 0;
+   cpuHead->cpuIsBusy = false;   // cpu flag: 0=false=idle, 1=true=busy
+   cpuHead->pLink = NULL;
 
    // create first process
    pHead = new procListNode;
@@ -87,13 +88,13 @@ void init() {
    pHead->finishTime = 0.0;
    pHead->serviceTime = genExp(mu);
    pHead->remainingTime = pHead->serviceTime;
-   pHead->pNext = 0;
+   pHead->pNext = NULL;
 
    // create first arrival event
    eHead = new eventQNode;
    eHead->time = pHead->arrivalTime;
    eHead->type = 1;
-   eHead->eNext = 0;
+   eHead->eNext = NULL;
    eHead->pLink = pHead;
 }
 
@@ -101,18 +102,22 @@ void run_sim(){
    switch (schedulerType) {
      case 1:
         cout << "The sim is running FCFS. . . " << endl;
+        cout << endl;
         FCFS();
         break;
      case 2:
         cout << "The sim is running SRTF. . . " << endl;
+        cout << endl;
         SRTF();
         break;
      case 3:
         cout << "The sim is running HRRN. . . " << endl;
+        cout << endl;
         HRRN();
         break;
      case 4:
         cout << "The sim is running RR. . . " << endl;
+        cout << endl;
         RR();
         break;
      default:
@@ -123,19 +128,20 @@ void run_sim(){
 void FCFS() {
    int departureCount = 0;
 int arrivalCount = 0;
+int allocationCount = 0;
 
    while(departureCount < stopCond) {
       // CASE 1: cpu is not busy -------------------
       if(cpuHead->cpuIsBusy == false) {
          scheduleArrival();
-         if(rHead != 0) {
+         if(rHead != NULL) {
             scheduleAllocation();
          }
 		  }
       // CASE 2: cpu is busy -----------------------
       else scheduleDeparture();
 
-      // ANY CASE: handle next event ---------------
+      // handle next event ---------------
       if(eHead->type == 1) {
          handleArrival();
          arrivalCount++;
@@ -144,15 +150,21 @@ int arrivalCount = 0;
          handleDeparture();
          departureCount++; //10,000 departures.. good
       }
-      else if(eHead->type == 3) handleAllocation();
+      else if(eHead->type == 3) {
+         handleAllocation();
+         allocationCount++;
+      }
    }
 cout << "Arrival Count: " << arrivalCount << endl;
 cout << "Departure Count: " << departureCount << endl;
+cout << "Allocation Count: " << allocationCount << endl;
 }
 
 void SRTF() {
    int arrivalCount = 0;
    int departureCount = 0;
+int allocationCount = 0;
+
    while(departureCount < stopCond) {
       // keep scheduling arrivals until 10000 departures
       if(arrivalCount < (stopCond * 1.20)) {
@@ -161,7 +173,7 @@ void SRTF() {
       }
       // CASE 1: cpu is not busy -------------------
       if(cpuHead->cpuIsBusy == false) {
-         if(rHead != 0) scheduleAllocation();
+         if(rHead != NULL) scheduleAllocation();
       }
       // CASE 2: cpu is busy -----------------------
       else {
@@ -184,9 +196,15 @@ void SRTF() {
          //okayToDepart = false;
          departureCount++;
       }
-      else if(eHead->type == 3) handleAllocation();
+      else if(eHead->type == 3) {
+        handleAllocation();
+        allocationCount++;
+      }
       else if(eHead->type == 4) handlePreemption();
    } // end while
+cout << "Arrival Count: " << arrivalCount << endl;
+cout << "Departure Count: " << departureCount << endl;
+cout << "Allocation Count: " << allocationCount << endl;
 }
 
 void HRRN() {
@@ -195,7 +213,7 @@ void HRRN() {
       // CASE 1: cpu is not busy -------------------
       if(cpuHead->cpuIsBusy == false) {
          scheduleArrival();
-         if(rHead != 0) {
+         if(rHead != NULL) {
             scheduleAllocation(); // HRR rules are in the method
          }
        }
@@ -294,24 +312,24 @@ bool isPreemptive() {
 void scheduleArrival() {
    // add a process to the process list
    procListNode* pIt = pHead;
-   while(pIt->pNext !=0) {
+   while(pIt->pNext != NULL) {
       pIt = pIt->pNext;
    }
    pIt->pNext = new procListNode;
    pIt->pNext->arrivalTime = pIt->arrivalTime + genExp((float)lambda);
    pIt->pNext->startTime = 0.0;
    pIt->pNext->reStartTime = 0.0;
-   pIt->pNext->finishTime = 0.0;
+   pIt->pNext->finishTime = 0.0; //This is the problem!!!
    pIt->pNext->serviceTime = genExp(mu);
    pIt->pNext->remainingTime = pIt->pNext->serviceTime;
-   pIt->pNext->pNext = 0;
+   pIt->pNext->pNext = NULL;
 
    // create a corresponding arrival event
    eventQNode* nuArrival = new eventQNode;
    nuArrival->time = pIt->pNext->arrivalTime;
    nuArrival->type = 1;
    nuArrival->pLink = pIt->pNext;
-   nuArrival->eNext = 0;
+   nuArrival->eNext = NULL;
 
    // insert into eventQ in asc time order
    insertIntoEventQ(nuArrival);
@@ -322,10 +340,10 @@ void handleArrival() {
    // create a new readyQ node based on proc in eHead
    readyQNode* nuReady = new readyQNode;
    nuReady->pLink = eHead->pLink;
-   nuReady->rNext = 0;
+   nuReady->rNext = NULL;
 
    // push the new node into the readyQ
-   if(rHead == 0) rHead = nuReady;
+   if(rHead == NULL) rHead = nuReady;
    else {
       readyQNode* rIt = rHead;
       while(rIt->rNext != 0) {
@@ -368,7 +386,7 @@ void scheduleAllocation() {
 
    // set the values for type, next, and pLink
    nuAllocation->type = 3;
-   nuAllocation->eNext = 0;
+   nuAllocation->eNext = NULL;
    nuAllocation->pLink = nextProc;
 
    // insert new event into eventQ
@@ -380,7 +398,7 @@ void handleAllocation() {
    // point cpu to the proc named in the allocation event
    cpuHead->pLink = eHead->pLink;
 
-   if(schedulerType == 2 || schedulerType == 3) {  // FCFS and HRRN
+   if(schedulerType == 2 || schedulerType == 3) {  // SRTF and HRRN
       // find the corresponding process in readyQ and move
       // it to top of readyQ if it's not already there
       readyQNode* rIt = rHead->rNext;
@@ -447,10 +465,25 @@ void scheduleDeparture() {
 // removes process from cpu
 void handleDeparture() {
    // update cpu data
-   cpuHead->pLink->finishTime = eHead->time;
-	 cpuHead->pLink->remainingTime = 0.0;
-   cpuHead->pLink = 0;
+//procListNode* test;
+//test = cpuHead->pLink;
+//test->finishTime = eHead->time;
+//cout << test->finishTime << endl;
    cpuHead->clock = eHead->time;
+   //cpuHead->pLink->finishTime = eHead->time;
+   cpuHead->pLink->finishTime = cpuHead->clock;
+   pHead->finishTime = cpuHead->pLink->finishTime;
+//countSomething++;
+//cout << "Process Arrival time: " << cpuHead->pLink->arrivalTime << endl;
+//cout << "Process Service time: " << cpuHead->pLink->serviceTime << endl;
+//cout << "Process Departure time: " << cpuHead->pLink->finishTime << endl;
+//cout << "pHead finish Time: " << pHead->finishTime << endl;
+//cout << eHead->time << endl;
+//cout << countSomething << endl;
+//cout << eHead->type << endl;
+	 cpuHead->pLink->remainingTime = 0.0;
+   cpuHead->pLink = NULL;
+//cout << cpuHead->clock << endl;
    cpuHead->cpuIsBusy = false;
 
    // pop the departure from the eventQ
@@ -679,7 +712,7 @@ float getNextQuantumAllocationTime() {
 
 // returns a random number bewteen 0 and 1
 float smallrand() {
-   srand(time(NULL)); //doesn't work
+   //srand(time(NULL)); //doesn't work
    return((float) rand() / RAND_MAX);
 }
 
@@ -773,30 +806,47 @@ float getAvgTurnaroundTime() {
    float totTurnaroundTime = 0.0;
    float totalServicetime = 0.0;
    int count = 0;
+   int count2 = 0;
    procListNode* pIt = pHead;
-   while(pIt->finishTime != 0) {
+   while(pIt->pNext != NULL) {
       // tally up the turnaround times
-      totTurnaroundTime += (pIt->finishTime - pIt->arrivalTime);
+      if(pIt->finishTime == 0) {
+         //cout << "nope" << pIt->finishTime << endl;
+         count2++;
+      }
+      else {
+         totTurnaroundTime += (pIt->finishTime - pIt->arrivalTime);
+         count++;
+      }
+
 
 totalServicetime += pIt->serviceTime;
 //cout << "ServiceTime: " << pIt->serviceTime << endl;
-//cout << "finishTime: " << pIt->finishTime << endl;
-count++;
+//cout << "arrivalTime in turnaround: " << pIt->arrivalTime << endl;
+//cout << "finishTime in tunraround: " << pIt->finishTime << endl;
+
       pIt = pIt->pNext;
    }
-cout << "Avg Total ServiceTime: " << (totalServicetime/stopCond) << endl;
+cout << endl;
+cout << "Avg Total ServiceTime: " << (totalServicetime / stopCond) << endl;
+cout << "Total Turnaround time: " << totTurnaroundTime << endl;
 cout << "SumServiceTime: " << totalServicetime << endl;
 cout << "Number of finishTime's summed up: " << count << endl;
+cout << "Number of 0 finishTime's: " << count2 << endl;
    return (totTurnaroundTime / stopCond);
 }
 
 float getTotalThroughput() {
    procListNode* pIt = pHead;
    float finTime = 0.0;
+   int count = 0;
 
-   while(pIt->finishTime != 0) {
+   while(pIt->pNext != NULL) {
       // get the final timestamp
-      if(pIt->pNext->finishTime == 0) {
+      if(pIt->finishTime == 0) {
+         count++;
+      }
+      else{
          finTime = pIt->finishTime;
       }
       pIt = pIt->pNext;
@@ -809,14 +859,20 @@ float getCpuUtil() {
    procListNode* pIt = pHead;
    float busyTime = 0.0;
    float finTime = 0.0;
-   while(pIt->finishTime != 0) {
-      busyTime += pIt->serviceTime;
-      if(pIt->pNext->finishTime == 0)
-         finTime = pIt->finishTime;
-      pIt = pIt->pNext;
+   int count = 0;
+   while(pIt->pNext != NULL) {
+     if(pIt->finishTime == 0){
+        count++;
+     }
+     else {
+       busyTime += pIt->serviceTime;
+       finTime = pIt->finishTime;
+     }
+     pIt = pIt->pNext;
    }
 cout << "Busy Time: " << busyTime << endl;
 cout << "finTime: " << finTime << endl;
+cout << "number of 0 finish time's in CPU util: " << count << endl;
    return (busyTime / finTime);
 }
 
@@ -824,10 +880,15 @@ float getAvgNumProcInQ() {
    // identify the final second of processing (timeN)
    // as it would appear on a seconds-based timeline
    float timeNmin1 = 0.0;
+   int count = 0;
    procListNode* pIt = pHead;
-   while(pIt->finishTime != 0) {
-      if(pIt->pNext->finishTime == 0)
-         timeNmin1 = pIt->finishTime;
+   while(pIt->pNext != NULL) {
+      if(pIt->finishTime == 0) {
+        count++;
+      }
+      else {
+        timeNmin1 = pIt->finishTime;
+      }
       pIt = pIt->pNext;
    }
    int timeN = static_cast<int>(timeNmin1) + 1;
