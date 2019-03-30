@@ -37,6 +37,7 @@ class Simmulator:
 			'id' : None
 		}
 
+## NEed a little clarification.
 	def createProcess(self):
 		serv_time = generateExp(1 / average_service_time)
 		
@@ -55,6 +56,8 @@ class Simmulator:
 			self.fcfs() 
 		if scheduler == 2:
 			self.hrrn()
+		if scheduler == 3:
+			self.srtf()
 
 			# print (self.history)
 		
@@ -62,13 +65,15 @@ class Simmulator:
 
 #####################################################################################
 
+## Feel Like we should round times before calculations?
+
 	def fcfs(self):
 		self.arrivaltoEventQ()
 		self.count = self.count + 1
 		while self.count != self.end_condition + 1:
 
 			self.eventQ.sort(key=lambda k: k['time'])
-
+			##  EXPLAIN Does this if Makes sense? And line up right with the else? Think might have an indent errpr can you explain
 			#readyq stuff
 			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
 			
@@ -199,7 +204,7 @@ class Simmulator:
 
 			# self.count = self.count + 1 #updating end condition	
 			print (self.count)
-				
+
 
 	def calculateRatio(self):
 		for i, ev in enumerate(self.readyQ):
@@ -253,12 +258,13 @@ class Simmulator:
 	def getAvgTurnaroundTime(self):
 		total = 0 
 		for ev in self.history:
-			total = total + ev['finish_time']
+			total = total + (ev['finish_time'] - ev["arrival_time"])
 		print (len(self.history))
-		return round(total / len(self.history), 2)
+		return round(total / self.end_condition, 2)
 
 	def getTotalThroughput(self):
-		return round(len(self.history)/ self.clock, 2) 
+		return round(self.end_condition/self.clock,3)
+		#return round(len(self.history)/ self.clock, 2)
 
 	def getCpuUtil(self):
 		total = 0
