@@ -25,6 +25,8 @@ class Simmulator:
 		self.average_service_time = average_service_time
 		self.quantum_value = quantum_value
 
+		self.finished_processes = 0
+
 		self.numInreadyQ = 0
 		self.count = 1
 		self.end_condition = 10000
@@ -40,7 +42,7 @@ class Simmulator:
 
 	def createProcess(self):
 		serv_time = math.log(1 - float(random.uniform(0, 1))) / (-(1/self.average_service_time))
-		
+
 		return {
 			'arrival_time' : 0,
 			'service_time' : serv_time,
@@ -70,16 +72,16 @@ class Simmulator:
 		while self.count != self.end_condition + 1:
 
 			self.eventQ.sort(key=lambda k: k['time'])
-			
+
 			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
-				self.putinCPU()				
+				self.putinCPU()
 			else:
 				self.handleEvent()
-				
-			
+
+
 #####################################################################################
 
-	
+
 	def hrrn(self):
 		self.arrivaltoEventQ()
 		self.count = self.count + 1
@@ -88,10 +90,10 @@ class Simmulator:
 			self.eventQ.sort(key=lambda k: k['time'])
 
 			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
-				self.putinCPU()				
+				self.putinCPU()
 			else:
 				self.handleEvent()
-				
+
 
 
 #####################################################################################
@@ -103,7 +105,7 @@ class Simmulator:
 			ev['id'] = self.count
 			self.eventQ.append(ev) 		
 			
-        
+
 	def departuretoEventQ(self, time, ID):
 			ev = self.createEmptyEvent()
 			ev['time'] = time
@@ -115,7 +117,7 @@ class Simmulator:
 		#skip readyQ since its empty & process eventQ[0]
 		if (not self.readyQ):
 			proc = self.createProcess()
-		
+
 			self.clock = self.eventQ[0]['time']
 			proc['id'] = self.eventQ[0]['id']
 			proc['arrival_time'] = self.clock
@@ -129,18 +131,18 @@ class Simmulator:
 			if self.clock < self.readyQ[0]['arrival_time']: # making sure time only moves forwards
 				self.clock = self.readyQ[0]['arrival_time']
 			del self.readyQ[0]
-		
-		proc['start_time'] = self.clock 
+
+		proc['start_time'] = self.clock
 		finish_time = self.clock + proc['service_time']
 		proc['finish_time'] = finish_time
-		
+
 		self.CPU = copy.deepcopy(proc) #put process into cpu
 		self.is_busy = True
 		self.departuretoEventQ(finish_time, proc['id']) #generate departure event
 
 
 	def handleEvent(self):
-		#if next event is arrival but cpu is busy then put it in readyQ 
+		#if next event is arrival but cpu is busy then put it in readyQ
 		if self.eventQ[0]['type'] == 'arrival':
 			# put into the readyQ
 			if self.clock < self.eventQ[0]['time']: # making sure time only moves forwards
@@ -152,7 +154,7 @@ class Simmulator:
 			self.arrivaltoEventQ()
 			self.count = self.count + 1 # maybe this instead of in line 121?
 
-		else: #if next event is type == departure 
+		else: #if next event is type == departure
 			self.numInreadyQ += len(self.readyQ)
 			self.clock = self.CPU['finish_time']
 			self.history.append(copy.deepcopy(self.CPU)) #copy for debug/info
@@ -168,9 +170,57 @@ class Simmulator:
 			self.readyQ[i]['ratio'] = (waiting + self.readyQ[i]['service_time']) / self.readyQ[i]['service_time']
 
 		self.readyQ.sort(key=lambda k: k['ratio'], reverse=True)
+	def srtf(self):
+
+		head_event = self.arrivaltoEventQ()
+
+		while self.finished_processes < self.end_condition:
+			self.eventQ.sort(key = lambda k: k["time"])
+			ev = self.eventQ.pop(0)
+			self.clock = ev['time']
+			proc = self.createProcess()
+			## START HERE IF THERS ERRORS
+			if ev['type'] is "arrival":
+				proc['arrival_time'] = ev['time']
+				proc['id'] = ev['id']
+				if self.is_busy is False:
+					self.is_busy = True
+					ev['type'] = "departure"
+					proc['finish_time'] = self.clock + proc['remaining_time']
+					ev["time"] = proc["finish_time"]
+					proc['start_time'] = ev['time']
+					self.eventQ.append(ev)
+					self.CPU = proc
+				elif self.is_busy is True:
+
+					self.readyQ.append(proc)
+					self.srtfCalculator()
+
+	def srtfCalculator(self):
+		# find shortest remaining time in the readyQ
+
+		self.readyQ.sort(key=lambda k: k["finish_time"])
+		#find  process in the Cpu's remaining time
+		self.CPU['remaining_time'] = self.CPU["finish_time"] - self.clock
 
 
-#####################################################################################
+
+
+		#If a switch is necessary do it.
+
+		if (len(self.readyQ) > 0 and self.readyQ[0]["remaining_time"] < self.CPU['remaining_time']):
+
+			#find and remove the event in the CPU
+			for i in range(len(self.eventQ)):
+				if self.eventQ[i]["id"] is self.CPU["id"]:
+					self.eventQ.pop(i)
+			# take the old running process and put in the R.Q and make a new departure for it.
+			self.readyQ.append(self.CPU)
+			self.departuretoEventQ((self.clock + self.readyQ[0]["remaining_time"], self.CPU["id"])
+            self.CPU["id"] =
+
+
+
 
 
 #####################################################################################
