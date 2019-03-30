@@ -25,6 +25,7 @@ class Simmulator:
 		self.average_service_time = average_service_time
 		self.quantum_value = quantum_value
 
+		self.numInreadyQ = 0
 		self.count = 1
 		self.end_condition = 10000
 
@@ -37,9 +38,8 @@ class Simmulator:
 			'id' : None
 		}
 
-## NEed a little clarification.
 	def createProcess(self):
-		serv_time = generateExp(1 / average_service_time)
+		serv_time = math.log(1 - float(random.uniform(0, 1))) / (-(1/self.average_service_time))
 		
 		return {
 			'arrival_time' : 0,
@@ -57,15 +57,12 @@ class Simmulator:
 		if scheduler == 2:
 			self.hrrn()
 		if scheduler == 3:
-			self.srtf()
+			pass
 
-			# print (self.history)
 		
 		self.genReport()
 
 #####################################################################################
-
-## Feel Like we should round times before calculations?
 
 	def fcfs(self):
 		self.arrivaltoEventQ()
@@ -73,65 +70,35 @@ class Simmulator:
 		while self.count != self.end_condition + 1:
 
 			self.eventQ.sort(key=lambda k: k['time'])
-			##  EXPLAIN Does this if Makes sense? And line up right with the else? Think might have an indent errpr can you explain
-			#readyq stuff
-			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
 			
-				#skip readyQ since its empty & process eventQ[0]
-				if (not self.readyQ):
-					proc = self.createProcess()
-				
-					self.clock = self.eventQ[0]['time']
-					proc['id'] = self.eventQ[0]['id']
-					proc['arrival_time'] = self.clock
-					del self.eventQ[0]
-					self.arrivaltoEventQ()
-					self.count = self.count + 1 #????????
-				else:
-				
-					proc = self.readyQ[0] #get next event from the readyQ
-					self.clock = self.readyQ[0]['arrival_time']
-					del self.readyQ[0]
-				
-				proc['start_time'] = self.clock 
-				finish_time = self.clock + proc['service_time']
-				proc['finish_time'] = finish_time
-				
-				#put process into cpu
-				self.CPU = copy.deepcopy(proc)
-				self.is_busy = True
-				self.departuretoEventQ(finish_time, proc['id']) #generate departure event
-				# self.count = self.count + 1 
-				
+			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
+				self.putinCPU()				
 			else:
-				#if next event is arrival but cpu is busy then put it in readyQ 
-				if self.eventQ[0]['type'] == 'arrival':
-					# put into the readyQ
-					if self.clock < self.eventQ[0]['time']: #making sure time only moves forwards
-						self.clock = self.eventQ[0]['time']
-					proc = self.createProcess()
-					proc['arrival_time'] = self.clock
-					proc['id'] = self.eventQ[0]['id']
-					self.readyQ.append(copy.deepcopy(proc))
-					self.arrivaltoEventQ()
-					self.count = self.count + 1 # maybe this instead of in line 121?
+				self.handleEvent()
+				
+			
+#####################################################################################
+
 	
-				else: #if next event is type == departure 
-					self.clock = self.CPU['finish_time']
-					self.history.append(copy.deepcopy(self.CPU)) #copy for debug/info
-					self.CPU = None
-					self.is_busy = False
+	def hrrn(self):
+		self.arrivaltoEventQ()
+		self.count = self.count + 1
+		while self.count != self.end_condition + 1:
 
-				del self.eventQ[0]
+			self.eventQ.sort(key=lambda k: k['time'])
+
+			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
+				self.putinCPU()				
+			else:
+				self.handleEvent()
 				
 
-			# self.count = self.count + 1 #updating end condition	
-			print (self.count)
-				
+
+#####################################################################################
 
 	def arrivaltoEventQ(self):
 			ev = self.createEmptyEvent()
-			ev['time'] = generateExp(lambda_val) + self.clock
+			ev['time'] = self.clock + (math.log(1 - float(random.uniform(0, 1))) / (-self.lambda_val))
 			ev['type'] = 'arrival'
 			ev['id'] = self.count
 			self.eventQ.append(ev) 		
@@ -144,66 +111,55 @@ class Simmulator:
 			ev['id'] = ID
 			self.eventQ.append(ev) 
 
-	
-	def hrrn(self):
-		self.arrivaltoEventQ()
-		self.count = self.count + 1
-		while self.count != self.end_condition + 1:
+	def putinCPU(self):
+		#skip readyQ since its empty & process eventQ[0]
+		if (not self.readyQ):
+			proc = self.createProcess()
+		
+			self.clock = self.eventQ[0]['time']
+			proc['id'] = self.eventQ[0]['id']
+			proc['arrival_time'] = self.clock
+			del self.eventQ[0]
+			self.arrivaltoEventQ()
+			self.count = self.count + 1
+		else:
+			if scheduler == 2:
+				self.calculateRatio()
+			proc = self.readyQ[0] # get next event from the readyQ
+			if self.clock < self.readyQ[0]['arrival_time']: # making sure time only moves forwards
+				self.clock = self.readyQ[0]['arrival_time']
+			del self.readyQ[0]
+		
+		proc['start_time'] = self.clock 
+		finish_time = self.clock + proc['service_time']
+		proc['finish_time'] = finish_time
+		
+		self.CPU = copy.deepcopy(proc) #put process into cpu
+		self.is_busy = True
+		self.departuretoEventQ(finish_time, proc['id']) #generate departure event
 
-			self.eventQ.sort(key=lambda k: k['time'])
 
-			#readyq stuff
-			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
-			
-				#skip readyQ since its empty & process eventQ[0]
-				if (not self.readyQ):
-					proc = self.createProcess()
-				
-					self.clock = self.eventQ[0]['time']
-					proc['id'] = self.eventQ[0]['id']
-					proc['arrival_time'] = self.clock
-					del self.eventQ[0]
-					self.arrivaltoEventQ()
-				else:
-					self.calculateRatio()
-					proc = self.readyQ[0] #get next event from the readyQ
-					self.clock = self.readyQ[0]['arrival_time']
-					del self.readyQ[0]
-				
-				proc['start_time'] = self.clock 
-				finish_time = self.clock + proc['service_time']
-				proc['finish_time'] = finish_time
-				
-				#put process into cpu
-				self.CPU = copy.deepcopy(proc)
-				self.is_busy = True
-				self.departuretoEventQ(finish_time, proc['id']) #generate departure event
-				self.count = self.count + 1
-				
-			else:
-				#if next event is arrival but cpu is busy then put it in readyQ 
-				if self.eventQ[0]['type'] == 'arrival':
-					# put into the readyQ
-					if self.clock < self.eventQ[0]['time']: #making sure time only moves forwards
-						self.clock = self.eventQ[0]['time']
-					proc = self.createProcess()
-					proc['arrival_time'] = self.clock
-					proc['id'] = self.eventQ[0]['id']
-					self.readyQ.append(copy.deepcopy(proc))
-					self.arrivaltoEventQ()
-					self.count = self.count + 1 # maybe this instead of in line 121?
-	
-				else: #if next event is type == departure 
-					self.clock = self.CPU['finish_time']
-					self.history.append(copy.deepcopy(self.CPU)) #copy for debug/info
-					self.CPU = None
-					self.is_busy = False
+	def handleEvent(self):
+		#if next event is arrival but cpu is busy then put it in readyQ 
+		if self.eventQ[0]['type'] == 'arrival':
+			# put into the readyQ
+			if self.clock < self.eventQ[0]['time']: # making sure time only moves forwards
+				self.clock = self.eventQ[0]['time']
+			proc = self.createProcess()
+			proc['arrival_time'] = self.clock
+			proc['id'] = self.eventQ[0]['id']
+			self.readyQ.append(copy.deepcopy(proc))
+			self.arrivaltoEventQ()
+			self.count = self.count + 1 # maybe this instead of in line 121?
 
-				del self.eventQ[0]
-				
+		else: #if next event is type == departure 
+			self.numInreadyQ += len(self.readyQ)
+			self.clock = self.CPU['finish_time']
+			self.history.append(copy.deepcopy(self.CPU)) #copy for debug/info
+			self.CPU = None
+			self.is_busy = False
 
-			# self.count = self.count + 1 #updating end condition	
-			print (self.count)
+		del self.eventQ[0]
 
 
 	def calculateRatio(self):
@@ -212,6 +168,9 @@ class Simmulator:
 			self.readyQ[i]['ratio'] = (waiting + self.readyQ[i]['service_time']) / self.readyQ[i]['service_time']
 
 		self.readyQ.sort(key=lambda k: k['ratio'], reverse=True)
+
+
+#####################################################################################
 
 
 #####################################################################################
@@ -259,12 +218,10 @@ class Simmulator:
 		total = 0 
 		for ev in self.history:
 			total = total + (ev['finish_time'] - ev["arrival_time"])
-		print (len(self.history))
 		return round(total / self.end_condition, 2)
 
 	def getTotalThroughput(self):
 		return round(self.end_condition/self.clock,3)
-		#return round(len(self.history)/ self.clock, 2)
 
 	def getCpuUtil(self):
 		total = 0
@@ -273,7 +230,7 @@ class Simmulator:
 		return round((total / self.clock),2)
 
 	def getAvgNumProccessInQueue(self):
-		return 0 #round(self.numInQueue / self.count)
+		return round(self.numInreadyQ / self.end_condition, 2)
 				
 
 #####################################################################################
