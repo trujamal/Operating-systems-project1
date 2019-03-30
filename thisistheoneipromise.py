@@ -46,12 +46,15 @@ class Simmulator:
 			'remaining_time' : serv_time,
 			'start_time' : 0,
 			'finish_time' : 0,
-			'id' : 0
+			'id' : 0,
+			'ratio' : 0
 		}
 
 	def run(self):
 		if scheduler == 1:
 			self.fcfs() 
+		if scheduler == 2:
+			self.hrrn()
 
 			# print (self.history)
 		
@@ -63,9 +66,6 @@ class Simmulator:
 		self.arrivaltoEventQ()
 		self.count = self.count + 1
 		while self.count != self.end_condition + 1:
-#TODO i think the problem is that the eventQ is growing too quick with arrivals and consuming alot of actions
-# maybe dont update it everysingle time, to keep it in check and let more things actually go through
-# when it grows too quick, the departure for a process sometimes gets pushed back in the Q. 
 
 			self.eventQ.sort(key=lambda k: k['time'])
 
@@ -81,6 +81,7 @@ class Simmulator:
 					proc['arrival_time'] = self.clock
 					del self.eventQ[0]
 					self.arrivaltoEventQ()
+					self.count = self.count + 1 #????????
 				else:
 				
 					proc = self.readyQ[0] #get next event from the readyQ
@@ -95,6 +96,7 @@ class Simmulator:
 				self.CPU = copy.deepcopy(proc)
 				self.is_busy = True
 				self.departuretoEventQ(finish_time, proc['id']) #generate departure event
+				# self.count = self.count + 1 
 				
 			else:
 				#if next event is arrival but cpu is busy then put it in readyQ 
@@ -137,6 +139,76 @@ class Simmulator:
 			ev['id'] = ID
 			self.eventQ.append(ev) 
 
+	
+	def hrrn(self):
+		self.arrivaltoEventQ()
+		self.count = self.count + 1
+		while self.count != self.end_condition + 1:
+
+			self.eventQ.sort(key=lambda k: k['time'])
+
+			#readyq stuff
+			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
+			
+				#skip readyQ since its empty & process eventQ[0]
+				if (not self.readyQ):
+					proc = self.createProcess()
+				
+					self.clock = self.eventQ[0]['time']
+					proc['id'] = self.eventQ[0]['id']
+					proc['arrival_time'] = self.clock
+					del self.eventQ[0]
+					self.arrivaltoEventQ()
+				else:
+					self.calculateRatio()
+					proc = self.readyQ[0] #get next event from the readyQ
+					self.clock = self.readyQ[0]['arrival_time']
+					del self.readyQ[0]
+				
+				proc['start_time'] = self.clock 
+				finish_time = self.clock + proc['service_time']
+				proc['finish_time'] = finish_time
+				
+				#put process into cpu
+				self.CPU = copy.deepcopy(proc)
+				self.is_busy = True
+				self.departuretoEventQ(finish_time, proc['id']) #generate departure event
+				self.count = self.count + 1
+				
+			else:
+				#if next event is arrival but cpu is busy then put it in readyQ 
+				if self.eventQ[0]['type'] == 'arrival':
+					# put into the readyQ
+					if self.clock < self.eventQ[0]['time']: #making sure time only moves forwards
+						self.clock = self.eventQ[0]['time']
+					proc = self.createProcess()
+					proc['arrival_time'] = self.clock
+					proc['id'] = self.eventQ[0]['id']
+					self.readyQ.append(copy.deepcopy(proc))
+					self.arrivaltoEventQ()
+					self.count = self.count + 1 # maybe this instead of in line 121?
+	
+				else: #if next event is type == departure 
+					self.clock = self.CPU['finish_time']
+					self.history.append(copy.deepcopy(self.CPU)) #copy for debug/info
+					self.CPU = None
+					self.is_busy = False
+
+				del self.eventQ[0]
+				
+
+			# self.count = self.count + 1 #updating end condition	
+			print (self.count)
+				
+
+	def calculateRatio(self):
+		for i, ev in enumerate(self.readyQ):
+			waiting = self.clock - self.readyQ[i]['arrival_time']
+			self.readyQ[i]['ratio'] = (waiting + self.readyQ[i]['service_time']) / self.readyQ[i]['service_time']
+
+		self.readyQ.sort(key=lambda k: k['ratio'], reverse=True)
+
+
 #####################################################################################
 #####################################################################################
 ############################## REPORT STUFFS ########################################
@@ -145,7 +217,9 @@ class Simmulator:
 
 	def genReport(self):
 		if scheduler == 1:
-			scheduler_value = "FCFS()"
+			scheduler_value = 'FCFS()'
+		if scheduler == 2:
+			scheduler_value = 'HRRN()'
 
 		average_turn_around_time = self.getAvgTurnaroundTime()
 		total_throughput = self.getTotalThroughput()
@@ -180,6 +254,7 @@ class Simmulator:
 		total = 0 
 		for ev in self.history:
 			total = total + ev['finish_time']
+		print (len(self.history))
 		return round(total / len(self.history), 2)
 
 	def getTotalThroughput(self):
