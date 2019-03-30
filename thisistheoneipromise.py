@@ -27,6 +27,7 @@ class Simmulator:
 
 		self.count = 1
 		self.end_condition = 10000
+
 #####################################################################################
 
 	def createEmptyEvent(self):
@@ -106,6 +107,7 @@ class Simmulator:
 					proc['id'] = self.eventQ[0]['id']
 					self.readyQ.append(copy.deepcopy(proc))
 					self.arrivaltoEventQ()
+					self.count = self.count + 1 # maybe this instead of in line 121?
 	
 				else: #if next event is type == departure 
 					self.clock = self.CPU['finish_time']
@@ -116,7 +118,7 @@ class Simmulator:
 				del self.eventQ[0]
 				
 
-			self.count = self.count + 1 #updating end condition	
+			# self.count = self.count + 1 #updating end condition	
 			print (self.count)
 				
 
