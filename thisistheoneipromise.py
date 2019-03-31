@@ -60,6 +60,8 @@ class Simmulator:
 			self.hrrn()
 		if scheduler == 3:
 			self.srtf()
+		if scheduler == 4:
+			self.rr()
 
 		
 		self.genReport()
@@ -95,6 +97,105 @@ class Simmulator:
 				self.handleEvent()
 
 
+#####################################################################################
+
+
+	def srtf(self):
+		self.arrivaltoEventQ()
+		self.count = self.count + 1
+		while self.count != self.end_condition + 1:
+
+			self.eventQ.sort(key=lambda k: k['time'])
+			self.readyQ.sort(key=lambda k: k["remaining_time"])
+
+			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
+				self.putinCPU()
+			else:
+				self.handleEvent()
+
+
+#####################################################################################
+
+	def rr(self):
+		self.arrivaltoEventQ()
+		self.count = self.count + 1
+		while self.count != self.end_condition + 1:
+
+			self.eventQ.sort(key=lambda k: k['time'])
+
+			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
+				#skip readyQ since its empty & process eventQ[0]
+				if (not self.readyQ):
+					proc = self.createProcess()
+
+					self.clock = self.eventQ[0]['time']
+					proc['id'] = self.eventQ[0]['id']
+					proc['arrival_time'] = self.clock
+					del self.eventQ[0]
+					self.arrivaltoEventQ()
+					self.count = self.count + 1
+				else:
+
+					proc = self.readyQ[0] # get next event from the readyQ
+					if self.clock < self.readyQ[0]['arrival_time']: # making sure time only moves forwards
+						self.clock = self.readyQ[0]['arrival_time']
+					del self.readyQ[0]
+
+				proc['start_time'] = self.clock
+#TODO calculate remaining time
+				finish_time = self.clock + proc['remaining_time']
+				proc['finish_time'] = finish_time
+
+				self.CPU = copy.deepcopy(proc) #put process into cpu
+				self.is_busy = True
+				self.departuretoEventQ(finish_time, proc['id']) #generate departure event
+				self.insertQuantum(self.clock, self.CPU['id'])
+			else:
+				#if next event is arrival but cpu is busy then put it in readyQ
+				if self.eventQ[0]['type'] == 'arrival':
+					# put into the readyQ
+					if self.clock < self.eventQ[0]['time']: # making sure time only moves forwards
+						self.clock = self.eventQ[0]['time']
+					proc = self.createProcess()
+					proc['arrival_time'] = self.clock
+					proc['id'] = self.eventQ[0]['id']
+					self.readyQ.append(copy.deepcopy(proc))
+					self.arrivaltoEventQ()
+					self.count = self.count + 1 # maybe this instead of in line 121?
+
+				elif self.eventQ[0]['type'] == 'quantum':
+					#popout the cpu and put next thing in readyq in the cpu
+					if self.clock < self.eventQ[0]['time']: # making sure time only moves forwards
+						self.clock = self.eventQ[0]['time']
+
+					if not self.readyQ: #if readyQ empty, then leave cpu alone and make another quantum
+						self.CPU['remaining_time'] -= self.quantum_value
+						self.insertQuantum(self.clock, self.CPU['id'])
+					else:		
+						self.CPU['remaining_time'] = self.CPU['finish_time'] - self.clock 
+						self.readyQ.append(self.CPU)
+
+						for i in range(len(self.eventQ)):
+							if self.eventQ[i]['id'] == self.CPU['id']:
+								self.eventQ.pop(i)
+								break
+
+						self.CPU = None
+						self.is_busy = False
+
+				else: #if next event is type == departure
+					self.numInreadyQ += len(self.readyQ)
+					self.clock = self.CPU['finish_time']
+					self.history.append(copy.deepcopy(self.CPU)) #copy for debug/info
+					self.CPU = None
+					self.is_busy = False
+
+					for i in range(len(self.eventQ)):
+						if self.eventQ[i]['type'] == 'quantum':
+							self.eventQ.pop(i)
+							break
+
+				del self.eventQ[0]
 
 #####################################################################################
 
@@ -110,6 +211,13 @@ class Simmulator:
 			ev = self.createEmptyEvent()
 			ev['time'] = time
 			ev['type'] = 'departure'
+			ev['id'] = ID
+			self.eventQ.append(ev) 
+
+	def insertQuantum(self, time, ID):
+			ev = self.createEmptyEvent()
+			ev['time'] = time + self.quantum_value
+			ev['type'] = 'quantum'
 			ev['id'] = ID
 			self.eventQ.append(ev) 
 
@@ -168,29 +276,12 @@ class Simmulator:
 
 		del self.eventQ[0]
 
-
 	def calculateRatio(self):
 		for i, ev in enumerate(self.readyQ):
 			waiting = self.clock - self.readyQ[i]['arrival_time']
 			self.readyQ[i]['ratio'] = (waiting + self.readyQ[i]['service_time']) / self.readyQ[i]['service_time']
 
 		self.readyQ.sort(key=lambda k: k['ratio'], reverse=True)
-
-
-
-	def srtf(self):
-		self.arrivaltoEventQ()
-		self.count = self.count + 1
-		while self.count != self.end_condition + 1:
-
-			self.eventQ.sort(key=lambda k: k['time'])
-			self.readyQ.sort(key=lambda k: k["remaining_time"])
-
-			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
-				self.putinCPU()
-			else:
-				self.handleEvent()
-
 
 	def srtfCalculator(self):
 		# find shortest remaining time in the readyQ
@@ -211,11 +302,6 @@ class Simmulator:
 			finish_time = self.clock + self.CPU["remaining_time"]
 			self.CPU['finish_time'] = finish_time
 			self.departuretoEventQ(finish_time, self.CPU['id'])
-			
-
-
-
-
 
 #####################################################################################
 #####################################################################################
@@ -230,6 +316,8 @@ class Simmulator:
 			scheduler_value = 'HRRN()'
 		if scheduler == 3:
 			scheduler_value = 'SRTF()'
+		if scheduler == 4:
+			scheduler_value = 'RR()'
 
 		average_turn_around_time = self.getAvgTurnaroundTime()
 		total_throughput = self.getTotalThroughput()
@@ -305,7 +393,7 @@ if __name__ == "__main__":
 		lambda_val = float(sys.argv[2])
 		average_service_time = float(sys.argv[3])
 		if len(sys.argv) == 5:
-			quantum_value = int(sys.argv[4])
+			quantum_value = float(sys.argv[4])
 		else:
 			quantum_value = None
 	else:
