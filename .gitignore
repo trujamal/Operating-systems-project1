@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Mac Files
+.DS_Store
+
 #Removing Pycharm Files
 *.xml
 .idea/
