@@ -165,8 +165,9 @@ class Simmulator:
 
 				elif self.eventQ[0]['type'] == 'quantum':
 					#popout the cpu and put next thing in readyq in the cpu
-					if self.clock < self.eventQ[0]['time']: # making sure time only moves forwards
-						self.clock = self.eventQ[0]['time']
+					# if self.clock < self.eventQ[0]['time']: # making sure time only moves forwards
+					# 	self.clock = self.eventQ[0]['time']
+					self.clock += self.quantum_value
 
 					if not self.readyQ: #if readyQ empty, then leave cpu alone and make another quantum
 						self.CPU['remaining_time'] -= self.quantum_value
