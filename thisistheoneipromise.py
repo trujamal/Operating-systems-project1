@@ -59,7 +59,7 @@ class Simmulator:
 		if scheduler == 2:
 			self.hrrn()
 		if scheduler == 3:
-			pass
+			self.srtf()
 
 		
 		self.genReport()
@@ -133,7 +133,10 @@ class Simmulator:
 			del self.readyQ[0]
 
 		proc['start_time'] = self.clock
-		finish_time = self.clock + proc['service_time']
+		if scheduler == 3:
+			finish_time = self.clock + proc['remaining_time']
+		else:
+			finish_time = self.clock + proc['service_time']
 		proc['finish_time'] = finish_time
 
 		self.CPU = copy.deepcopy(proc) #put process into cpu
@@ -151,6 +154,8 @@ class Simmulator:
 			proc['arrival_time'] = self.clock
 			proc['id'] = self.eventQ[0]['id']
 			self.readyQ.append(copy.deepcopy(proc))
+			if scheduler == 3:
+				self.srtfCalculator()
 			self.arrivaltoEventQ()
 			self.count = self.count + 1 # maybe this instead of in line 121?
 
@@ -170,44 +175,30 @@ class Simmulator:
 			self.readyQ[i]['ratio'] = (waiting + self.readyQ[i]['service_time']) / self.readyQ[i]['service_time']
 
 		self.readyQ.sort(key=lambda k: k['ratio'], reverse=True)
+
+
+
 	def srtf(self):
+		self.arrivaltoEventQ()
+		self.count = self.count + 1
+		while self.count != self.end_condition + 1:
 
-		head_event = self.arrivaltoEventQ()
+			self.eventQ.sort(key=lambda k: k['time'])
+			self.readyQ.sort(key=lambda k: k["remaining_time"])
 
-		while self.finished_processes < self.end_condition:
-			self.eventQ.sort(key = lambda k: k["time"])
-			ev = self.eventQ.pop(0)
-			self.clock = ev['time']
-			proc = self.createProcess()
-			## START HERE IF THERS ERRORS
-			if ev['type'] is "arrival":
-				proc['arrival_time'] = ev['time']
-				proc['id'] = ev['id']
-				if self.is_busy is False:
-					self.is_busy = True
-					ev['type'] = "departure"
-					proc['finish_time'] = self.clock + proc['remaining_time']
-					ev["time"] = proc["finish_time"]
-					proc['start_time'] = ev['time']
-					self.eventQ.append(ev)
-					self.CPU = proc
-				elif self.is_busy is True:
+			if self.is_busy == False: #if not busy then there is nothing in the readyQ or the cpu (IDLE/first run through)
+				self.putinCPU()
+			else:
+				self.handleEvent()
 
-					self.readyQ.append(proc)
-					self.srtfCalculator()
 
 	def srtfCalculator(self):
 		# find shortest remaining time in the readyQ
-
-		self.readyQ.sort(key=lambda k: k["finish_time"])
+		self.readyQ.sort(key=lambda k: k["remaining_time"])
 		#find  process in the Cpu's remaining time
 		self.CPU['remaining_time'] = self.CPU["finish_time"] - self.clock
 
-
-
-
 		#If a switch is necessary do it.
-
 		if (len(self.readyQ) > 0 and self.readyQ[0]["remaining_time"] < self.CPU['remaining_time']):
 
 			#find and remove the event in the CPU
@@ -215,9 +206,12 @@ class Simmulator:
 				if self.eventQ[i]["id"] is self.CPU["id"]:
 					self.eventQ.pop(i)
 			# take the old running process and put in the R.Q and make a new departure for it.
+			
 			self.readyQ.append(self.CPU)
-			self.departuretoEventQ((self.clock + self.readyQ[0]["remaining_time"], self.CPU["id"])
-            self.CPU["id"] =
+			self.CPU = self.readyQ[0] #swap out cpu and readyq[0]
+
+			self.departuretoEventQ(self.clock + self.CPU["remaining_time"], self.CPU['id'])
+			
 
 
 
@@ -234,6 +228,8 @@ class Simmulator:
 			scheduler_value = 'FCFS()'
 		if scheduler == 2:
 			scheduler_value = 'HRRN()'
+		if scheduler == 3:
+			scheduler_value = 'SRTF()'
 
 		average_turn_around_time = self.getAvgTurnaroundTime()
 		total_throughput = self.getTotalThroughput()
@@ -241,7 +237,7 @@ class Simmulator:
 		average_process_in_queue = self.getAvgNumProccessInQueue()
 
 		# Change file name as needed:
-		with open("Output.txt", "w+") as data_file:
+		with open("Output.txt", "a+") as data_file:
 			print("Output is writing to: ", data_file.name)
 
 			# if lambda_value == 10:
