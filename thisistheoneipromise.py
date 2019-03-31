@@ -200,17 +200,17 @@ class Simmulator:
 
 		#If a switch is necessary do it.
 		if (len(self.readyQ) > 0 and self.readyQ[0]["remaining_time"] < self.CPU['remaining_time']):
-
 			#find and remove the event in the CPU
 			for i in range(len(self.eventQ)):
 				if self.eventQ[i]["id"] is self.CPU["id"]:
 					self.eventQ.pop(i)
 			# take the old running process and put in the R.Q and make a new departure for it.
-			
 			self.readyQ.append(self.CPU)
 			self.CPU = self.readyQ[0] #swap out cpu and readyq[0]
-
-			self.departuretoEventQ(self.clock + self.CPU["remaining_time"], self.CPU['id'])
+			del self.readyQ[0]
+			finish_time = self.clock + self.CPU["remaining_time"]
+			self.CPU['finish_time'] = finish_time
+			self.departuretoEventQ(finish_time, self.CPU['id'])
 			
 
 
