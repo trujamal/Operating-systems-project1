@@ -1,5 +1,8 @@
 # Operating-systems-project-starter
-[![GitHub license](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/Cuberto/flashy-tabbar/master/LICENSE)
+[![Python Status](https://img.shields.io/pypi/pyversions/django.svg)](https://veveusa.com)
+[![Build Status](https://travis-ci.org/Microsoft/TypeScript.svg?branch=master)](https://veveusa.com)
+[![VSTS Build Status](https://dev.azure.com/typescript/TypeScript/_apis/build/status/Typescript/node10)](https://veveusa.com) 
+[![GitHub license](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://veveusa.com)
 [![Logo](https://cl.ly/ae0979e60b70/Image%202019-03-20%20at%201.15.02%20PM.png)](https://trujamal.com)
 
 CS4328 Project 1
