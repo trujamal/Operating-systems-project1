@@ -1,5 +1,8 @@
 # Operating-systems-project-starter
-[![GitHub license](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/Cuberto/flashy-tabbar/master/LICENSE)
+[![Python Status](https://img.shields.io/pypi/pyversions/django.svg)](https://veveusa.com)
+[![Build Status](https://travis-ci.org/Microsoft/TypeScript.svg?branch=master)](https://veveusa.com)
+[![VSTS Build Status](https://dev.azure.com/typescript/TypeScript/_apis/build/status/Typescript/node10)](https://veveusa.com) 
+[![GitHub license](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://veveusa.com)
 [![Logo](https://cl.ly/ae0979e60b70/Image%202019-03-20%20at%201.15.02%20PM.png)](https://trujamal.com)
 
 CS4328 Project 1
@@ -13,15 +16,18 @@ git clone https://github.com/trujamal/Operating-systems-project1.git
 
 ## Usage
 
-Please run the following command once you've cloned the repo in order to run the project files.
-Using programs as referenced.
-
+There are three different versions of the project in this repository, each have their own unqiue issues but will gaurentee atleast a passing score on the project. 2 Of the code sections are in Python and the other is in C++. Your goal is to modify the following code in the repo to perfect the work that we have culminated to create over the past couple of weeks of working on this project. Good luck team. 👋
 
 ### Setup Keys
-If there must be any key generation link it in this section
+Run the script files that are included in the correct location for you to get the accurate results of the repoistory.
+```
+./script.sh
+```
 
 ### Use the whole directory as needed
-It is designed to be an easy, and ready to go start off tempalate for your swift projects.
+If you find a better solution to what we have created weather in C++, or python, or even java create a pull request and we will add it to the repository, to keep expanding this concenpt known as the Sauce.
+
+[![Sauce It Up](https://66.media.tumblr.com/97ea15cac4dd904859e7dd8fdaeb6149/tumblr_ncaqtbSLeA1qj8u1do6_r1_400.gif)](https://veveusa.com)
 
 ## Requirements
 * Unix machine
