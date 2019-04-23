@@ -18,9 +18,9 @@ git clone https://github.com/trujamal/Operating-systems-project1.git
 
 There are three different versions of the project in this repository, each have their own unqiue issues but will gaurentee atleast a passing score on the project. 2 Of the code sections are in Python and the other is in C++. Your goal is to modify the following code in the repo to perfect the work that we have culminated to create over the past couple of weeks of working on this project. Good luck team. 👋
 
-THE SAUCE FOLDER GRADE: 100
-LINKEDLIST FOLDER GRADE: 92-98 (These teachers can't grade to save anyones lives)
-PROJECT1.PY: 72 - 82
+* THE SAUCE FOLDER GRADE: 100
+* LINKEDLIST FOLDER GRADE: 92-98 (These teachers can't grade to save anyones lives)
+* PROJECT1.PY: 72 - 82
 
 
 ### Setup Keys
